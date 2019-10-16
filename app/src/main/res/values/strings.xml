@@ -2,11 +2,14 @@
     <string name="app_name">Pandora</string>
     <string name="btn_host">Host game</string>
     <string name="btn_join">Join game</string>
-    <string name="n_tasks_completed">Tasks completed: </string>
-    <string name="n_tasks_left">Tasks left: </string>
+    <string name="n_tasks_completed">Tasks completed:\u0020</string>
+    <string name="n_tasks_left">Tasks left:\u0020</string>
     <string name="timer">Timer</string>
-    <string name="game_code">Game code: </string>
+    <string name="game_code">Game code:</string>
+    <string name="enter_game_code">Enter game code:</string>
     <string name="description_wait">Wait for other players to join, start game when everybody joined.</string>
-    <string name="players_joined"> players joined.</string>
+    <string name="players_joined">\u0020players joined.</string>
     <string name="start_game">Start game</string>
+    <string name="enter_game">Enter game</string>
+    <string name="wait_for_start">Waiting for the host to start the game...</string>
 </resources>

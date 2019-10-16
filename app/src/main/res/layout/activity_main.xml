@@ -46,6 +46,7 @@
         android:layout_centerHorizontal="true"
         android:textSize="40dp"
         android:background="#4Ceeeeee"
-        android:text="@string/btn_join" />
+        android:text="@string/btn_join"
+        android:onClick="goToExplorer"/>
 
 </RelativeLayout>

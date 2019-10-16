@@ -25,4 +25,9 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, CoordinatorGameScreen.class);
         startActivity(intent);
     }
+
+    public void goToExplorer(View view) {
+        Intent intent = new Intent(this, ExplorerGameScreen.class);
+        startActivity(intent);
+    }
 }
