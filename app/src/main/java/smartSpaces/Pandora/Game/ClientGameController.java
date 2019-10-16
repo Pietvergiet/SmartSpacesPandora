@@ -1,5 +1,5 @@
 package smartSpaces.Pandora.Game;
 
-public class Game {
+public class ClientGameController {
 
 }
