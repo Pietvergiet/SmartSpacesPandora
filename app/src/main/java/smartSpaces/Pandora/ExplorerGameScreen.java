@@ -26,6 +26,8 @@ import org.w3c.dom.Text;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class ExplorerGameScreen extends AppCompatActivity {
@@ -194,7 +196,9 @@ public class ExplorerGameScreen extends AppCompatActivity {
         });
     }
 
-
+    /**
+     * Creates the panels and adds them to the UI
+     */
     public void fillPanels() {
         Button btn1 = findViewById(R.id.button1);
         Button btn2 = findViewById(R.id.button2);
@@ -207,10 +211,19 @@ public class ExplorerGameScreen extends AppCompatActivity {
         TextView desc4 = findViewById(R.id.description4);
 
         // create panels
-        for (int i = 0; i < N_PANELS; i++){
+        Set<String> usedVerbs = new HashSet<>();
+        Set<String> usedObjects = new HashSet<>();
+        for (int i = 0; i < N_PANELS; i++) {
             Panel newPanel = new Panel(i);
+
+            // check whether object or verb is already used
+            while (usedVerbs.contains(newPanel.getVerb()) || usedObjects.contains(newPanel.getObject())) {
+                newPanel = new Panel(i);
+            }
+
+            usedVerbs.add(newPanel.getVerb());
+            usedObjects.add(newPanel.getObject());
             panels.add(newPanel);
-            Log.d(TAG, "fillPanels: name: " + newPanel.getVerb() + " " + newPanel.getObject());
         }
 
         // set button texts
@@ -230,49 +243,12 @@ public class ExplorerGameScreen extends AppCompatActivity {
         btn2.setTypeface(horrorFont);
         btn3.setTypeface(horrorFont);
         btn4.setTypeface(horrorFont);
-
-//        RecyclerView panelGrid = findViewById(R.id.panel_grid);
-//
-//        // use this setting to improve performance if you know that changes
-//        // in content do not change the layout size of the RecyclerView
-//        panelGrid.setHasFixedSize(true);
-//
-//        // use a linear layout manager
-//        GridLayoutManager layoutManager = new GridLayoutManager(getApplicationContext(), 2);
-//        panelGrid.setLayoutManager(layoutManager);
-//
-//        // specify an adapter (see also next example)
-//        mAdapter = new MyAdapter(myDataset);
-//        recyclerView.setAdapter(mAdapter);
-
-//        GridView buttonGrid = findViewById(R.id.button_grid); // init GridView
-        // Create an object of CustomAdapter and set Adapter to GridView
-//        Typeface horrorFont = Typeface.createFromAsset(getAssets(), "buried-before.before-bb.ttf");
-//        Typeface handwrittenFont = Typeface.createFromAsset(getAssets(), "GloriaHallelujah-Regular.ttf");
-//        CustomAdapter customAdapter = new CustomAdapter(getApplicationContext(), panels, horrorFont, handwrittenFont);
-//        buttonGrid.setAdapter(customAdapter);
-//        // implement setOnItemClickListener event on GridView
-////        buttonGrid.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-////            @Override
-////            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-////                int panelId = (int) id;
-////                // set an Intent to Another Activity
-////                Log.d(TAG, "onItemClick: button clicked: " + panels.get(panelId).getVerb() + " " + panels.get(panelId).getObject());
-////            }
-////        });
-//        View.OnClickListener listener = new View.OnClickListener() {
-//
-//            @Override
-//            public void onClick(View view) {
-//                int buttonId = view.getId();
-//                Log.d(TAG, "onClick: button clicked: " + panels.get(buttonId).getVerb() + " " + panels.get(buttonId).getObject());
-//
-//            }
-//        };
-//
-//        customAdapter.setOnClickListener(listener);
     }
 
+    /**
+     * //TODO: handles when a panel button is clicked. (v.getTag is the ID of the panel)
+     * @param v
+     */
     public void panelButtonClicked(View v) {
         Log.d(TAG, "panelButtonClicked: id: " + v.getTag() + ", text: ");
     }

@@ -35,7 +35,7 @@
         android:layout_centerHorizontal="true"
         android:textSize="40dp"
         android:text="@string/btn_host"
-        android:background="#4Ceeeeee"
+        android:background="#66eeeeee"
         android:onClick="goToCoordinator"/>
 
     <Button
@@ -45,7 +45,7 @@
         android:layout_below="@id/btn_host"
         android:layout_centerHorizontal="true"
         android:textSize="40dp"
-        android:background="#4Ceeeeee"
+        android:background="#66eeeeee"
         android:text="@string/btn_join"
         android:onClick="goToExplorer"/>
 

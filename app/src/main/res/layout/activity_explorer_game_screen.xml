@@ -28,6 +28,7 @@
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
             android:layout_centerHorizontal="true"
+            android:layout_marginLeft="20dp"
             android:text="[Task]"
             android:textColor="@color/white"/>
     </RelativeLayout>
@@ -217,16 +218,6 @@
             android:text="@string/enter_game_code"
             android:fontFamily="@font/gloria_hallelujah"
             android:textColor="@color/black" />
-
-<!--        <TextView-->
-<!--            android:id="@+id/room_description2"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:layout_below="@+id/room_code"-->
-<!--            android:paddingBottom="10dp"-->
-<!--            android:text="@string/description_wait"-->
-<!--            android:fontFamily="@font/gloria_hallelujah"-->
-<!--            android:textColor="@color/black"/>-->
 
         <EditText
             android:id="@+id/room_code"
