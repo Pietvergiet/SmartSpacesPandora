@@ -12,6 +12,7 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -48,6 +49,7 @@ public class MyBluetoothService {
         public static final int MESSAGE_READ = 0;
         public static final int MESSAGE_WRITE = 1;
         public static final int MESSAGE_TOAST = 2;
+        public static final int NEW_CONNECTION = 3;
 
         // ... (Add other message types here as needed.)
     }
@@ -60,6 +62,7 @@ public class MyBluetoothService {
     public MyBluetoothService(Handler h, boolean s) {
         isServer = s;
         handler = h;
+        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     }
 
     /**
@@ -143,16 +146,68 @@ public class MyBluetoothService {
         if (isServer){
             connectionAmount++;
             if (connectionAmount <= MAX_CONNECTIONS){
-                ConnectedThread tmp = new ConnectedThread(socket);
+                BluetoothSocket tmpS = socket;
+                ConnectedThread tmp = new ConnectedThread(tmpS);
                 tmp.start();
                 serverConnections.put(connectionAmount, tmp);
             }
-            aThread.cancel();
         } else {
-            clientConnection = new ConnectedThread(socket);
+            BluetoothSocket tmpS = socket;
+            clientConnection = new ConnectedThread(tmpS);
             clientConnection.start();
-            cThread.cancel();
+            if (cThread != null) {
+                cThread.cancel();
+                cThread = null;
+            }
         }
+    }
+
+    /**
+     * Stops waiting for new connections
+     */
+    public synchronized void stopClientDiscovery() {
+        if (aThread != null) {
+            aThread.cancel();
+            aThread = null;
+        }
+    }
+
+    /**
+     * Checks if the client is connected to a remote device.
+     * @return true if the Socket is connected
+     */
+    public boolean isClientConnected() {
+        if (clientConnection != null) {
+            return clientConnection.mmSocket.isConnected();
+        }
+        return false;
+    }
+
+    /**
+     * Return the name of the remote Bluetooth device the client is connected to.
+     * @return The name of the remote Bluetooth device
+     */
+    public String getHostName() {
+        if (isClientConnected()) {
+            return clientConnection.mmSocket.getRemoteDevice().getName();
+        }
+        return null;
+    }
+
+    /**
+     * Returns a list of connected Bluetooth devices
+     * @return ArrayList of connected clients
+     */
+    public synchronized ArrayList<String> getConnectedClients(){
+        ArrayList<String> connectedDevices = new ArrayList<>();
+        if (serverConnections != null && !serverConnections.isEmpty()){
+            for (Map.Entry<Integer, ConnectedThread> sc : serverConnections.entrySet()){
+                if(sc.getValue().mmSocket.isConnected()) {
+                    connectedDevices.add(sc.getValue().mmSocket.getRemoteDevice().getName());
+                }
+            }
+        }
+        return connectedDevices;
     }
 
     /**
@@ -160,21 +215,31 @@ public class MyBluetoothService {
      */
     public synchronized void stop(){
         Log.d(TAG, "Stop");
-        aThread.cancel();
-        aThread = null;
-
-        cThread.cancel();
-        cThread = null;
-
-        for (Map.Entry<Integer, ConnectedThread> sc: serverConnections.entrySet()){
-            sc.getValue().cancel();
-            serverConnections.remove(sc.getKey());
+        if (aThread != null) {
+            aThread.cancel();
+            aThread = null;
         }
-        serverConnections.clear();
-        serverConnections = null;
 
-        clientConnection.cancel();
-        clientConnection = null;
+        if (cThread != null) {
+            cThread.cancel();
+            cThread = null;
+        }
+
+        if (serverConnections != null) {
+            for (Map.Entry<Integer, ConnectedThread> sc : serverConnections.entrySet()) {
+                if (sc.getValue() != null) {
+                    sc.getValue().cancel();
+                    serverConnections.remove(sc.getKey());
+                }
+            }
+            serverConnections.clear();
+            serverConnections = null;
+        }
+
+        if (clientConnection != null) {
+            clientConnection.cancel();
+            clientConnection = null;
+        }
 
     }
 
@@ -214,9 +279,13 @@ public class MyBluetoothService {
                         // A connection was accepted. Perform work associated with
                         // the connection in a separate thread.
                         startConnection(socket);
+                        Message readMsg = handler.obtainMessage(
+                                Constants.NEW_CONNECTION);
+                        readMsg.sendToTarget();
                         Log.i(TAG, "New connection with: " + socket.getRemoteDevice().getName());
 //                    manageMyConnectedSocket(socket);
 //                        tekst.setText("Connected!!!");
+                        socket = null;
                     }
                 }
             }
@@ -338,7 +407,7 @@ public class MyBluetoothService {
                     numBytes = mmInStream.read(mmBuffer);
                     // Send the obtained bytes to the UI activity.
                     Message readMsg = handler.obtainMessage(
-                            MessageConstants.MESSAGE_READ, numBytes, -1,
+                            Constants.MESSAGE_READ, numBytes, -1,
                             mmBuffer);
                     readMsg.sendToTarget();
                 } catch (IOException e) {
@@ -355,7 +424,7 @@ public class MyBluetoothService {
 
                 // Share the sent message with the UI activity.
                 Message writtenMsg = handler.obtainMessage(
-                        MessageConstants.MESSAGE_WRITE, -1, -1, mmBuffer);
+                        Constants.MESSAGE_WRITE, -1, -1, mmBuffer);
                 writtenMsg.sendToTarget();
             } catch (IOException e) {
                 Log.e(TAG, "Error occurred when sending data", e);
