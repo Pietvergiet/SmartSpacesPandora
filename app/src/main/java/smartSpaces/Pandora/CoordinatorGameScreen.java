@@ -2,7 +2,13 @@ package smartSpaces.Pandora;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Typeface;
+import android.graphics.drawable.BitmapDrawable;
 import android.media.Image;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -19,6 +25,7 @@ import android.widget.TextView;
 
 import org.w3c.dom.Text;
 
+import java.io.IOException;
 import java.sql.Time;
 
 public class CoordinatorGameScreen extends AppCompatActivity {
@@ -27,7 +34,9 @@ public class CoordinatorGameScreen extends AppCompatActivity {
     private long TASKTIME = 30 * 1000;
     private long GAMETIME_INTERVAL = 1000;
     private long TASKTIME_INTERVAL = 100;
+    private long MAPBLOCKS = 5;
     private String TAG = "Coordinator ";
+    private Bitmap bm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,6 +54,22 @@ public class CoordinatorGameScreen extends AppCompatActivity {
         task.setTypeface(pixelFont);
         start.setTypeface(horrorFont);
         roomCode.setTypeface(horrorFont);
+
+        RelativeLayout mapContainer = findViewById(R.id.map);
+
+//        int screenWidth = mapContainer.getMeasuredWidth();
+//        mapContainer.setMinimumHeight(screenWidth);
+//
+//        try {
+//            bm = BitmapFactory.decodeStream(this.getApplicationContext().getAssets().open("redblock.png"));
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//
+//        ImageView map = findViewById(R.id.map_background);
+//        map.setImageBitmap(bm);
+
+        //updateMap(1,2);
     }
 
     /**
@@ -218,5 +243,25 @@ public class CoordinatorGameScreen extends AppCompatActivity {
             @Override
             public void onAnimationRepeat(Animation animation) {}
         });
+    }
+
+    public void updateMap(int x, int y) { // matrix from 0-4 0-4
+        Bitmap mutableBM = bm.copy(Bitmap.Config.ARGB_8888, true);
+        ImageView map = findViewById(R.id.map_background);
+        int width = map.getMeasuredWidth();
+        int stepsize = Math.round(width / MAPBLOCKS);
+
+        map.setImageBitmap(bm);
+
+        Canvas tempCanvas = new Canvas(mutableBM);
+        Paint p = new Paint();
+        p.setColor(Color.BLACK);
+        tempCanvas.drawBitmap(bm, 0, 0, null);
+
+        float cx = (float) (x * stepsize);
+        float cy = (float) (y * stepsize);
+
+        tempCanvas.drawCircle(cy, cx, stepsize, p);
+        map.setImageDrawable(new BitmapDrawable(getResources(), mutableBM));
     }
 }
