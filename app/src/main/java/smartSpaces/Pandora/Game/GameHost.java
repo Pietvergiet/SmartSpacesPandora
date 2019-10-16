@@ -1,45 +1,49 @@
 package smartSpaces.Pandora.Game;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import smartSpaces.Pandora.Game.Tasks.Task;
 
 public class GameHost {
     private int playerAmount;
     private int tasksToComplete;
     private int tasksComplete = 0;
+    private int panelsPerPlayer;
     private HashMap<Player, Task> playerTasks;
     private ArrayList<Player> playerList;
     private THaMap map;
 
-    public GameHost(int nPlayers, int nTasks) {
+    public GameHost(int nPlayers, int nTasks, int panelAmount) {
         playerAmount = nPlayers;
         tasksToComplete = nTasks;
+        panelsPerPlayer = panelAmount;
         playerTasks = new HashMap<>();
         playerList = new ArrayList<>();
+        playerPanels = new HashMap<>();
     }
 
-    private void addPlayer(Player player){
+    public void addPlayer(Player player){
         playerList.add(player);
     }
 
-    private void newTask(Player player, Task task) {
+    public void newTask(Player player, Task task) {
         playerTasks.put(player, task);
     }
 
-    private void completeTask() {
+    public void completeTask() {
         tasksComplete++;
     }
 
-    private int getTasksLeft() {
+    public int getTasksLeft() {
         return tasksToComplete - tasksComplete;
     }
 
-    private void addTask() {
+    public void addTask() {
         tasksToComplete++;
     }
 
-    private void setMap(ThaMap m) {
+    public void setMap(ThaMap m) {
         map = m;
     }
 }

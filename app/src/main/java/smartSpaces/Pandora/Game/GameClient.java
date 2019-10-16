@@ -1,5 +1,7 @@
 package smartSpaces.Pandora.Game;
 
+import smartSpaces.Pandora.Game.Tasks.Task;
+
 public class GameClient {
     private Player player;
     private Task displayTask;
@@ -7,7 +9,6 @@ public class GameClient {
 
     public GameClient(Player p, Task task){
         player = p;
-        displayTask = task;
     }
 
     public void setTask(Task task){
