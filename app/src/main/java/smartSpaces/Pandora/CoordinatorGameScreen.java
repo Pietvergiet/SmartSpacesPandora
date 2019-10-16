@@ -36,7 +36,7 @@ public class CoordinatorGameScreen extends AppCompatActivity {
     private long TASKTIME_INTERVAL = 100;
     private long MAPBLOCKS = 5;
     private String TAG = "Coordinator ";
-    private Bitmap bm;
+    Bitmap bm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,17 +57,19 @@ public class CoordinatorGameScreen extends AppCompatActivity {
 
         RelativeLayout mapContainer = findViewById(R.id.map);
 
-//        int screenWidth = mapContainer.getMeasuredWidth();
-//        mapContainer.setMinimumHeight(screenWidth);
-//
-//        try {
-//            bm = BitmapFactory.decodeStream(this.getApplicationContext().getAssets().open("redblock.png"));
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//
-//        ImageView map = findViewById(R.id.map_background);
-//        map.setImageBitmap(bm);
+        int screenWidth = mapContainer.getMeasuredWidth();
+        mapContainer.setMinimumHeight(screenWidth);
+
+        try {
+            bm = BitmapFactory.decodeStream(this.getApplicationContext().getAssets().open("beep.png"));
+            Log.d(TAG, "onCreate: Updating map...");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        ImageView map = findViewById(R.id.map_background);
+        map.setImageBitmap(bm);
+        Log.d(TAG, "onCreate: Map filled");
 
         //updateMap(1,2);
     }
