@@ -46,47 +46,40 @@ public class ExplorerGameScreen extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_explorer_game_screen);
 
-        // initiate input field
-        EditText input = findViewById(R.id.room_code);
-        input.setFilters(new InputFilter[] {new InputFilter.AllCaps()});
-
         // set visibilities of elements
         ProgressBar spinner = findViewById(R.id.spinner);
-        TextView wait = findViewById(R.id.wait_start_game);
         spinner.setVisibility(View.GONE);
-        wait.setVisibility(View.GONE);
 
         // initiate fonts
         this.pixelFont = Typeface.createFromAsset(getAssets(), "Fipps-Regular.otf");
         this.horrorFont = Typeface.createFromAsset(getAssets(), "buried-before.before-bb.ttf");
 
         TextView task = findViewById(R.id.task);
-        TextView start = findViewById(R.id.btn_start);
 
         task.setTypeface(pixelFont);
-        start.setTypeface(horrorFont);
-        input.setTypeface(horrorFont);
 
         // initiate panels
         fillPanels();
+
+        try {
+            initiateGame();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
 
-    public void initiateGame(View view) throws InterruptedException{
+    public void initiateGame() throws InterruptedException{
         // add spinner
         ProgressBar spinner = findViewById(R.id.spinner);
         TextView wait = findViewById(R.id.wait_start_game);
-        Button btnStart = findViewById(R.id.btn_start);
 
         // set visibilities
-        btnStart.setVisibility(View.GONE);
         spinner.setVisibility(View.VISIBLE);
         wait.setVisibility(View.VISIBLE);
 
         // find roomcode and join game
-        EditText input = findViewById(R.id.room_code);
-        String roomCode = input.getText().toString();
-        Boolean joined = joinGame(roomCode);
+        Boolean joined = joinGame();
 
         if (joined) {
             //remove view, remove spinner, start game
@@ -94,21 +87,18 @@ public class ExplorerGameScreen extends AppCompatActivity {
             modal.setVisibility(View.GONE);
 
             //TODO: START GAME AND SET TASK
-            setTask("Cook an egg");
+            setTask("Open the safe");
         } else {
             // show error
         }
     }
 
     /**
-     * Function that implements the joining of a game.
-     * @param roomCode
+     *  //TODO: Function that implements the joining of a game.
      * @return boolean if joining game worked or failed.
      * @throws InterruptedException
      */
-    public boolean joinGame(String roomCode) throws InterruptedException {
-        TimeUnit.SECONDS.sleep(5);
-        Log.d(TAG, "startGame: room code: " + roomCode);
+    public boolean joinGame() throws InterruptedException {
         return true;
     }
 

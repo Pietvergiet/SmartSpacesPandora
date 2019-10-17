@@ -46,14 +46,12 @@ public class CoordinatorGameScreen extends AppCompatActivity {
         // setting typefaces (ugly but cannot be done in XML :/
         TextView task = findViewById(R.id.task);
         TextView start = findViewById(R.id.btn_start);
-        TextView roomCode = findViewById(R.id.room_code);
 
         Typeface pixelFont = Typeface.createFromAsset(getAssets(), "Fipps-Regular.otf");
         Typeface horrorFont = Typeface.createFromAsset(getAssets(), "buried-before.before-bb.ttf");
 
         task.setTypeface(pixelFont);
         start.setTypeface(horrorFont);
-        roomCode.setTypeface(horrorFont);
 
         // compute screenwidth;
         Display display = getWindowManager().getDefaultDisplay();
@@ -78,27 +76,35 @@ public class CoordinatorGameScreen extends AppCompatActivity {
         // hide map
         hideMap(0, 0);
         hideMap(0, 1);
-        hideMap(0, 2);
-        hideMap(0, 3);
-        hideMap(0, 4);
+//        hideMap(0, 2);
+//        hideMap(0, 3);
+//        hideMap(0, 4);
         hideMap(1, 0);
-        hideMap(1, 1);
-        hideMap(1, 2);
-        hideMap(1, 3);
-        hideMap(1, 4);
-        hideMap(2, 0);
-        hideMap(2, 1);
-        hideMap(2, 2);
-        hideMap(2, 3);
-        hideMap(2, 4);
-        hideMap(3, 0);
-        hideMap(3, 1);
-        hideMap(3, 2);
-        hideMap(3, 3);
-        hideMap(3, 4);
+//        hideMap(1, 1);
+//        hideMap(1, 2);
+//        hideMap(1, 3);
+//        hideMap(1, 4);
+//        hideMap(2, 0);
+//        hideMap(2, 1);
+//        hideMap(2, 2);
+//        hideMap(2, 3);
+//        hideMap(2, 4);
+//        hideMap(3, 0);
+//        hideMap(3, 1);
+//        hideMap(3, 2);
+//        hideMap(3, 3);
+//        hideMap(3, 4);
+//        hideMap(4, 0);
+//        hideMap(4, 1);
+//        hideMap(4, 2);
+//        hideMap(4, 3);
+        hideMap(4, 4);
+//
+//        showMap(3,4);
+//        showMap(1,1);
 
-        showMap(3,4);
-        showMap(1,1);
+        drawObjectOnMap(R.drawable.flag, new Location(3,3));
+        drawObjectOnMap(R.drawable.safe, new Location(1,2));
     }
 
     /**
@@ -126,7 +132,7 @@ public class CoordinatorGameScreen extends AppCompatActivity {
         };
 
         timer.start();
-        setTask("Cook an egg");
+        setTask("Chase a cart");
     }
 
     /**
@@ -322,5 +328,38 @@ public class CoordinatorGameScreen extends AppCompatActivity {
         }
 
         map.setImageDrawable(new BitmapDrawable(getResources(), mutableBM));
+    }
+
+    public void drawObjectOnMap(int resId, Location location){      // where location is top left corner of image
+        /**
+         *         possible drawables:
+         *         - safe
+         *         - flag
+         *         -
+         *
+          */
+
+        int stepsize = Math.round(screenWidth / MAPBLOCKS);
+        int left = location.getX() * stepsize;
+        int top = location.getY() * stepsize;
+
+        ImageView imageView = new ImageView(this);
+        imageView.setImageResource(resId);
+
+        RelativeLayout relativeLayout = findViewById(R.id.map_objects);
+
+        RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(stepsize, stepsize);
+        layoutParams.setMargins(left, top, 0, 0);
+
+        relativeLayout.addView(imageView, layoutParams);
+    }
+
+    /**
+     * Adapts UI in how many players joined
+     * @param n
+     */
+    public void showPlayersJoined(int n) {
+        TextView nPlayers = findViewById(R.id.amount_players);
+        nPlayers.setText(n);
     }
 }

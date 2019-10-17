@@ -16,6 +16,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/black"/>
+
+        <RelativeLayout
+            android:id="@+id/map_objects"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
     </RelativeLayout>
 
     <RelativeLayout
@@ -190,34 +195,13 @@
         android:padding="30dp">
 
         <TextView
-            android:id="@+id/room_description"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="5dp"
-            android:text="@string/game_code"
-            android:textColor="@color/black"
-            app:fontFamily="@font/gloria_hallelujah" />
-
-        <TextView
-            android:id="@+id/room_code"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/room_description"
-            android:layout_marginBottom="5dp"
-            android:textSize="25dp"
-            android:textColor="@color/colorPrimary"
-            android:text="10DKD20DA" />
-
-        <TextView
             android:id="@+id/room_description2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/room_code"
             android:paddingBottom="10dp"
             android:text="@string/description_wait"
             android:fontFamily="@font/gloria_hallelujah"
             android:textColor="@color/black"/>
-
 
         <LinearLayout
             android:layout_width="match_parent"

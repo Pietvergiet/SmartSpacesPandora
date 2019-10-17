@@ -5,6 +5,7 @@
     <color name="colorPrimaryDark">#700104</color>
     <color name="colorAccent">#4981b2</color>
     <color name="timerRed">#e51b22</color>
+    <color name="red">#ba0006</color>
     <color name="black">#050000</color>
     <color name="white">#eee</color>
 </resources>
