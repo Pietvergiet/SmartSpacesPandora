@@ -7,26 +7,23 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Point;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
-import android.media.Image;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.provider.ContactsContract;
 import android.util.Log;
+import android.view.Display;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import org.w3c.dom.Text;
-
 import java.io.IOException;
-import java.sql.Time;
+import java.util.ArrayList;
 
 public class CoordinatorGameScreen extends AppCompatActivity {
 
@@ -37,6 +34,9 @@ public class CoordinatorGameScreen extends AppCompatActivity {
     private long MAPBLOCKS = 5;
     private String TAG = "Coordinator ";
     Bitmap bm;
+    private int screenWidth;
+    Bitmap scaledbm;
+    private ArrayList<Location> hiddenMapBlocks;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,23 +55,50 @@ public class CoordinatorGameScreen extends AppCompatActivity {
         start.setTypeface(horrorFont);
         roomCode.setTypeface(horrorFont);
 
-        RelativeLayout mapContainer = findViewById(R.id.map);
+        // compute screenwidth;
+        Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        screenWidth = size.x;
+        Log.e("Width", "" + screenWidth);
 
-        int screenWidth = mapContainer.getMeasuredWidth();
-        mapContainer.setMinimumHeight(screenWidth);
-
+        // initializing map
+        hiddenMapBlocks = new ArrayList<>();
         try {
-            bm = BitmapFactory.decodeStream(this.getApplicationContext().getAssets().open("beep.png"));
+            bm = BitmapFactory.decodeStream(this.getApplicationContext().getAssets().open("map.png"));
+            scaledbm = bm.createScaledBitmap(bm, screenWidth, screenWidth, false);
             Log.d(TAG, "onCreate: Updating map...");
         } catch (IOException e) {
             e.printStackTrace();
         }
-
         ImageView map = findViewById(R.id.map_background);
-        map.setImageBitmap(bm);
+        map.setImageBitmap(scaledbm);
         Log.d(TAG, "onCreate: Map filled");
 
-        //updateMap(1,2);
+        // hide map
+        hideMap(0, 0);
+        hideMap(0, 1);
+        hideMap(0, 2);
+        hideMap(0, 3);
+        hideMap(0, 4);
+        hideMap(1, 0);
+        hideMap(1, 1);
+        hideMap(1, 2);
+        hideMap(1, 3);
+        hideMap(1, 4);
+        hideMap(2, 0);
+        hideMap(2, 1);
+        hideMap(2, 2);
+        hideMap(2, 3);
+        hideMap(2, 4);
+        hideMap(3, 0);
+        hideMap(3, 1);
+        hideMap(3, 2);
+        hideMap(3, 3);
+        hideMap(3, 4);
+
+        showMap(3,4);
+        showMap(1,1);
     }
 
     /**
@@ -247,23 +274,53 @@ public class CoordinatorGameScreen extends AppCompatActivity {
         });
     }
 
-    public void updateMap(int x, int y) { // matrix from 0-4 0-4
-        Bitmap mutableBM = bm.copy(Bitmap.Config.ARGB_8888, true);
-        ImageView map = findViewById(R.id.map_background);
-        int width = map.getMeasuredWidth();
-        int stepsize = Math.round(width / MAPBLOCKS);
+    /**
+     * Hide a certain block of the map
+     * @param x
+     * @param y
+     */
+    public void hideMap(int x, int y) { // matrix from 0-4 0-4
+        hiddenMapBlocks.add(new Location(x, y));
+        drawMap();
+    }
 
-        map.setImageBitmap(bm);
+    public void showMap(int x, int y) {
+        for (int i = 0; i < hiddenMapBlocks.size(); i++ ){
+            if (hiddenMapBlocks.get(i).isLocation(x, y)){
+                hiddenMapBlocks.remove(i);
+                break;
+            }
+        }
+        drawMap();
+    }
+
+    /**
+     * Updates the map according to hiddenMapBlocks
+     */
+    public void drawMap() {
+        Log.d(TAG, "hideMap: Updating map ...");
+        Bitmap mutableBM = scaledbm.copy(Bitmap.Config.ARGB_8888, true);
+        ImageView map = findViewById(R.id.map_background);
+        int stepsize = Math.round(screenWidth / MAPBLOCKS);
+
+        map.setImageBitmap(scaledbm);
 
         Canvas tempCanvas = new Canvas(mutableBM);
         Paint p = new Paint();
         p.setColor(Color.BLACK);
-        tempCanvas.drawBitmap(bm, 0, 0, null);
+        tempCanvas.drawBitmap(scaledbm, 0, 0, null);
 
-        float cx = (float) (x * stepsize);
-        float cy = (float) (y * stepsize);
+        for (int i = 0; i < hiddenMapBlocks.size(); i ++) {
+            Location block = hiddenMapBlocks.get(i);
 
-        tempCanvas.drawCircle(cy, cx, stepsize, p);
+            float left = (float) (block.getX() * stepsize);
+            float right = left + stepsize;
+            float top = (float) (block.getY() * stepsize);
+            float bottom = top + stepsize;
+
+            tempCanvas.drawRect(left, top, right, bottom, p);
+        }
+
         map.setImageDrawable(new BitmapDrawable(getResources(), mutableBM));
     }
 }
