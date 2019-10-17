@@ -1,19 +1,21 @@
 package smartSpaces.Pandora.Game.Tasks;
 
+import smartSpaces.Pandora.Game.Map.MapObject;
+
 /**
  * Makes a motion task with or without a maplocation object.
  */
 public class MotionTask extends Task{
 
-    private int motionType;
+    private MotionActivityTypes motionType;
     private MapObject mapObject;
 
     /**
      * Makes a certain type of motion task.
      * @param motionType The type of {@link MotionActivityTypes}
      */
-    public MotionTask(int motionType) {
-        super(TaskTypes.TYPE_MOTION);
+    public MotionTask(MotionActivityTypes motionType) {
+        super(TaskTypes.MOTION);
         this.motionType = motionType;
         buildDescription();
     }
@@ -23,8 +25,8 @@ public class MotionTask extends Task{
      * @param motionType The {@link MotionActivityTypes}
      * @param object The {@link MapObject}
      */
-    public MotionTask(int motionType, MapObject object) {
-        super(TaskTypes.TYPE_MOTION_LOCATION);
+    public MotionTask(MotionActivityTypes motionType, MapObject object) {
+        super(TaskTypes.MOTION_LOCATION);
         this.motionType = motionType;
         mapObject = object;
         buildDescription();
@@ -35,8 +37,8 @@ public class MotionTask extends Task{
      * @param motionType The type of {@link MotionActivityTypes}
      * @param isConcurrent If the task has to be executed by all current players
      */
-    public MotionTask(int motionType, boolean isConcurrent) {
-        super((isConcurrent ? TaskTypes.TYPE_MOTION_CONCURRENT : TaskTypes.TYPE_MOTION_LOCATION), isConcurrent);
+    public MotionTask(MotionActivityTypes motionType, boolean isConcurrent) {
+        super((isConcurrent ? TaskTypes.MOTION_CONCURRENT : TaskTypes.MOTION_LOCATION), isConcurrent);
         this.motionType = motionType;
     }
 
@@ -44,23 +46,23 @@ public class MotionTask extends Task{
     public void buildDescription() {
         String desc = "Shit's broken yo";
         switch (motionType) {
-            case MotionActivityTypes.PICK_LOCK:
+            case PICK_LOCK:
                 desc = "Pick the lock";
                 break;
-            case  MotionActivityTypes.RAISE_FLAG:
+            case  RAISE_FLAG:
                 desc = "Let the Flag be raised";
                 break;
-            case MotionActivityTypes.PIROUETTE:
+            case PIROUETTE:
                 if (isConcurrent()) {
                     desc = "Let everyone spin round, right round, like a record baby";
                 } else {
                     desc = "Make one do a Pirouette";
                 }
                 break;
-            case MotionActivityTypes.HOLD_IN_PLACE:
+            case HOLD_IN_PLACE:
                 desc = "Make one immobile for X seconds";
                 break;
-            case MotionActivityTypes.SHAKE_PHONE:
+            case SHAKE_PHONE:
                 desc = "Shake phones";
         }
         description = desc;
@@ -70,7 +72,7 @@ public class MotionTask extends Task{
         return mapObject;
     }
 
-    public int getMotionType() {
+    public MotionActivityTypes getMotionType() {
         return motionType;
     }
 }

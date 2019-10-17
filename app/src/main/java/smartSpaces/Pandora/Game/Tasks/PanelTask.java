@@ -7,7 +7,7 @@ public class PanelTask extends Task{
     private Panel taskPanel;
 
     public PanelTask(Panel panel) {
-        super(TaskTypes.TYPE_PANEL);
+        super(TaskTypes.PANEL);
         taskPanel = panel;
     }
 

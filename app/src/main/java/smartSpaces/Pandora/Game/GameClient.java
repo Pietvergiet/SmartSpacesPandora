@@ -1,13 +1,14 @@
 package smartSpaces.Pandora.Game;
 
+import smartSpaces.Pandora.Game.Map.GameMap;
 import smartSpaces.Pandora.Game.Tasks.Task;
 
 public class GameClient {
     private Player player;
     private Task displayTask;
-    private ThaMap map;
+    private GameMap map;
 
-    public GameClient(Player p, Task task){
+    public GameClient(Player p){
         player = p;
     }
 
@@ -15,7 +16,11 @@ public class GameClient {
         displayTask = task;
     }
 
-    public void setMap(ThaMap m) {
+    public boolean isSetUp() {
+        return (map != null && player.isReady() && displayTask != null);
+    }
+
+    public void setMap(GameMap m) {
         map = m;
     }
 }

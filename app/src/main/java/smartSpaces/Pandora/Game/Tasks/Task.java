@@ -2,21 +2,21 @@ package smartSpaces.Pandora.Game.Tasks;
 
 public abstract class Task {
 
-    private int taskType;
+    private TaskTypes taskType;
     private boolean isConcurrent = false;
     protected String description;
 
-    public Task(int type) {
+    public Task(TaskTypes type) {
         taskType = type;
     }
 
-    public Task(int type, boolean ooncurrent) {
+    public Task(TaskTypes type, boolean ooncurrent) {
         taskType = type;
         isConcurrent = ooncurrent;
         buildDescription();
     }
 
-    public int getTaskType() {
+    public TaskTypes getTaskType() {
         return taskType;
     }
 

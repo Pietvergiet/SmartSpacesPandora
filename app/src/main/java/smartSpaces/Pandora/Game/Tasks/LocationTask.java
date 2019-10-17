@@ -1,5 +1,7 @@
 package smartSpaces.Pandora.Game.Tasks;
 
+import smartSpaces.Pandora.Game.Map.MapObject;
+
 public class LocationTask extends Task {
 
     private int xCoordinate;
@@ -7,20 +9,20 @@ public class LocationTask extends Task {
     private MapObject mapObject;
 
     public LocationTask(int[] coordinates){
-        super(TaskTypes.TYPE_LOCATION);
+        super(TaskTypes.LOCATION);
         xCoordinate = coordinates[0];
         yCoordinate = coordinates[2];
         buildDescription();
     }
 
     public LocationTask(MapObject object){
-        super(TaskTypes.TYPE_LOCATION);
+        super(TaskTypes.LOCATION);
         mapObject = object;
         buildDescription();
     }
 
     public LocationTask(int[] coordinates, MapObject object){
-        super(TaskTypes.TYPE_LOCATION);
+        super(TaskTypes.LOCATION);
         xCoordinate = coordinates[0];
         yCoordinate = coordinates[2];
         mapObject = object;
