@@ -105,6 +105,7 @@ public class CoordinatorGameScreen extends AppCompatActivity {
 
         drawObjectOnMap(R.drawable.flag, new Location(3,3));
         drawObjectOnMap(R.drawable.safe, new Location(1,2));
+        drawObjectOnMap(R.drawable.bomb, new Location(0,4));
     }
 
     /**

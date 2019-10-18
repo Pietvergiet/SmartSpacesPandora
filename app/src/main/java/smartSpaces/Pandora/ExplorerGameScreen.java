@@ -130,8 +130,9 @@ public class ExplorerGameScreen extends AppCompatActivity {
                 Log.d(TAG, "onFinish: TIME OUT! TASK FAILED...");
 
 //                taskCompleted();
-                taskFailed();
-                setTask("Do a pirouette");
+//                taskFailed();
+//                setTask("Do a pirouette");
+//                goToWin();
             }
         };
 
@@ -241,5 +242,15 @@ public class ExplorerGameScreen extends AppCompatActivity {
      */
     public void panelButtonClicked(View v) {
         Log.d(TAG, "panelButtonClicked: id: " + v.getTag() + ", text: ");
+    }
+
+    public void goToWin() {
+        Intent intent = new Intent(this, WinScreen.class);
+        startActivity(intent);
+    }
+
+    public void goToLost() {
+        Intent intent = new Intent(this, LostScreen.class);
+        startActivity(intent);
     }
 }

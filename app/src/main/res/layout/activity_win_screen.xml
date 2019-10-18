@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/opendoor"
+    tools:context=".WinScreen">
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true" >
+        <TextView
+            android:id="@+id/win"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:textSize="50dp"
+            android:textColor="@color/black"
+            android:paddingBottom="20dp"
+            android:text="@string/won" />
+
+        <Button
+            android:id="@+id/new_game"
+            android:layout_width="300dp"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@id/win"
+            android:text="@string/new_game"
+            android:textSize="40dp"
+            android:background="#66eeeeee"
+            android:onClick="startNewGame"
+            android:textColor="@color/black"
+            android:layout_marginBottom="20dp"/>
+
+        <Button
+            android:id="@+id/home"
+            android:layout_width="300dp"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@id/new_game"
+            android:text="@string/home"
+            android:textSize="40dp"
+            android:textColor="@color/black"
+            android:background="#66eeeeee"
+            android:onClick="goToHome"/>
+    </RelativeLayout>
+
+
+</RelativeLayout>

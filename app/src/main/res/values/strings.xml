@@ -12,4 +12,8 @@
     <string name="start_game">Start game</string>
     <string name="enter_game">Enter game</string>
     <string name="wait_for_start">Waiting for the host to start the game...</string>
+    <string name="won">You won!</string>
+    <string name="lost">You lost!</string>
+    <string name="new_game">Another game</string>
+    <string name="home">Return home</string>
 </resources>
