@@ -16,4 +16,12 @@
     <string name="lost">You lost!</string>
     <string name="new_game">Another game</string>
     <string name="home">Return home</string>
+    <string name="instruction_1">Hi there &#8230; \n You guys must be wondering why I\'m keeping you in this barn&#8230; \n Are you frightened?</string>
+    <string name="instruction_2">Good for you.</string>
+    <string name="instruction_3">If you want to get out, you will have to do some tasks for me.</string>
+    <string name="instruction_4">Pay attention though, you cannot complete your own tasks! You\'ll have to make others do it, within the time of course.</string>
+    <string name="instruction_5">You have 10 minutes to complete at least 20 tasks. If you cannot make it, I\'ll have to end your lives.</string>
+    <string name="instruction_6">Otherwise, I might let you go. But we\'ll see about that.</string>
+    <string name="instruction_7">Good luck... Mwoohahahahahaha</string>
+    <string name="continue_game">Continue</string>
 </resources>

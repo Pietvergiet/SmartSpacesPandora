@@ -54,7 +54,7 @@
             android:textSize="40dp"
             android:text="@string/btn_host"
             android:background="#66eeeeee"
-            android:onClick="goToCoordinator"/>
+            android:onClick="goToInstructionCoordinator"/>
 
         <Button
             android:id="@+id/btn_join"
@@ -65,7 +65,7 @@
             android:textSize="40dp"
             android:background="#66eeeeee"
             android:text="@string/btn_join"
-            android:onClick="goToExplorer"/>
+            android:onClick="goToInstructionExplorer"/>
     </RelativeLayout>
 
 

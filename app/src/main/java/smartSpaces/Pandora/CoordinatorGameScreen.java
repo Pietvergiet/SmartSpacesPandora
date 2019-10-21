@@ -2,6 +2,7 @@ package smartSpaces.Pandora;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -32,6 +33,7 @@ public class CoordinatorGameScreen extends AppCompatActivity {
     private long GAMETIME_INTERVAL = 1000;
     private long TASKTIME_INTERVAL = 100;
     private long MAPBLOCKS = 5;
+    private int COORDINATOR_ROLE = 0;
     private String TAG = "Coordinator ";
     Bitmap bm;
     private int screenWidth;
@@ -362,5 +364,17 @@ public class CoordinatorGameScreen extends AppCompatActivity {
     public void showPlayersJoined(int n) {
         TextView nPlayers = findViewById(R.id.amount_players);
         nPlayers.setText(n);
+    }
+
+    public void goToWin() {
+        Intent intent = new Intent(this, WinScreen.class);
+        intent.putExtra("role", COORDINATOR_ROLE);
+        startActivity(intent);
+    }
+
+    public void goToLost() {
+        Intent intent = new Intent(this, LostScreen.class);
+        intent.putExtra("role", COORDINATOR_ROLE);
+        startActivity(intent);
     }
 }

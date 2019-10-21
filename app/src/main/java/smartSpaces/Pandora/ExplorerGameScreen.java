@@ -37,6 +37,7 @@ public class ExplorerGameScreen extends AppCompatActivity {
     public long TASKTIME = 30 * 1000;
     public long TASKTIME_INTERVAL = 100;
     public long N_PANELS = 4;
+    private int EXPLORER_ROLE = 1;
     public String TAG = "Explorer: ";
     public Typeface horrorFont;
     public Typeface pixelFont;
@@ -246,11 +247,13 @@ public class ExplorerGameScreen extends AppCompatActivity {
 
     public void goToWin() {
         Intent intent = new Intent(this, WinScreen.class);
+        intent.putExtra("role", EXPLORER_ROLE);
         startActivity(intent);
     }
 
     public void goToLost() {
         Intent intent = new Intent(this, LostScreen.class);
+        intent.putExtra("role", EXPLORER_ROLE);
         startActivity(intent);
     }
 }

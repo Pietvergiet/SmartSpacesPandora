@@ -12,6 +12,9 @@ import android.widget.TextView;
 import java.lang.reflect.Type;
 
 public class MainActivity extends AppCompatActivity {
+    private int EXPLORER_ROLE = 1;
+    private int COORDINATOR_ROLE = 0;
+    private int role;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,13 +30,15 @@ public class MainActivity extends AppCompatActivity {
         btnJoin.setTypeface(font);
     }
 
-    public void goToCoordinator(View view) {
-        Intent intent = new Intent(this, CoordinatorGameScreen.class);
+    public void goToInstructionCoordinator(View view) {
+        Intent intent = new Intent(this, InstructionScreen.class);
+        intent.putExtra("role", COORDINATOR_ROLE);
         startActivity(intent);
     }
 
-    public void goToExplorer(View view) {
-        Intent intent = new Intent(this, ExplorerGameScreen.class);
+    public void goToInstructionExplorer(View view) {
+        Intent intent = new Intent(this, InstructionScreen.class);
+        intent.putExtra("role", EXPLORER_ROLE);
         startActivity(intent);
     }
 }
