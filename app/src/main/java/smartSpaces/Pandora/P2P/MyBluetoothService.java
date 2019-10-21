@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.util.SparseArray;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,12 +28,8 @@ public class MyBluetoothService {
     private Handler handler; // handler that gets info from Bluetooth service
 
     private final static int MAX_CONNECTIONS = 5;
-    private final static int DISCOVERABLE_BT_REQUEST_CODE = 2;
-    private final static int DISCOVERABLE_DURATION = 3600;
-    private final static String TEMP_SERVER_NAME = "PANDORA GAME";
     private final static java.util.UUID MY_UUID = java.util.UUID.fromString("bb807b74-dc2f-4f70-8c05-c101e7d55db7");
     private final static String NAME = "PANDORA";
-    private static final int REQUEST_COARSE_LOCATION = 300;
 
     private boolean isServer;
     private int connectionAmount = 0;
@@ -40,6 +37,7 @@ public class MyBluetoothService {
     private ConnectThread cThread;
     private ConnectedThread clientConnection;
     private HashMap<Integer, ConnectedThread> serverConnections;
+    private HashMap<String, Integer> serverConnectionIds;
     private BluetoothAdapter mBluetoothAdapter;
 
 
@@ -72,6 +70,7 @@ public class MyBluetoothService {
      */
     public synchronized void host() {
         serverConnections = new HashMap<>();
+        serverConnectionIds = new HashMap<>();
         aThread = new AcceptThread();
         aThread.start();
     }
@@ -150,6 +149,7 @@ public class MyBluetoothService {
                 ConnectedThread tmp = new ConnectedThread(tmpS);
                 tmp.start();
                 serverConnections.put(connectionAmount, tmp);
+                serverConnectionIds.put(socket.getRemoteDevice().getAddress(), connectionAmount);
             }
         } else {
             BluetoothSocket tmpS = socket;
@@ -198,12 +198,12 @@ public class MyBluetoothService {
      * Returns a list of connected Bluetooth devices
      * @return ArrayList of connected clients
      */
-    public synchronized ArrayList<String> getConnectedClients(){
-        ArrayList<String> connectedDevices = new ArrayList<>();
+    public synchronized HashMap<Integer, BluetoothDevice> getConnectedClients(){
+        HashMap<Integer, BluetoothDevice> connectedDevices = new HashMap<>();
         if (serverConnections != null && !serverConnections.isEmpty()){
             for (Map.Entry<Integer, ConnectedThread> sc : serverConnections.entrySet()){
                 if(sc.getValue().mmSocket.isConnected()) {
-                    connectedDevices.add(sc.getValue().mmSocket.getRemoteDevice().getName());
+                    connectedDevices.put(sc.getKey(), sc.getValue().mmSocket.getRemoteDevice());
                 }
             }
         }
@@ -399,15 +399,18 @@ public class MyBluetoothService {
         public void run() {
             mmBuffer = new byte[1024];
             int numBytes; // bytes returned from read()
+            int clientId;
 
             // Keep listening to the InputStream until an exception occurs.
             while (true) {
                 try {
                     // Read from the InputStream.
                     numBytes = mmInStream.read(mmBuffer);
+
+                    clientId = isServer ? serverConnectionIds.get(mmSocket.getRemoteDevice().getAddress()) : -1;
                     // Send the obtained bytes to the UI activity.
                     Message readMsg = handler.obtainMessage(
-                            Constants.MESSAGE_READ, numBytes, -1,
+                            Constants.MESSAGE_READ, numBytes, clientId,
                             mmBuffer);
                     readMsg.sendToTarget();
                 } catch (IOException e) {
