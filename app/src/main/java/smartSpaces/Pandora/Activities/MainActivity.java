@@ -102,11 +102,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
                 activitystable.clear();
             }else if(result == 1.0) {
-                textresult = "you are Shaking";
+                textresult = "you are Still";
 
                 activitystable.clear();
             }else if(result == 2.0) {
-                textresult = "you are Still";
+                textresult = "you are Shaking";
 
                 activitystable.clear();
             }else if(result == 3.0) {
