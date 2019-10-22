@@ -9,8 +9,14 @@
     <RelativeLayout
         android:id="@+id/visualisation"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:background="#b2898a" >
+        android:layout_height="300dp"
+        android:background="#000" >
+        <pl.droidsonroids.gif.GifImageView
+            android:layout_centerHorizontal="true"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:src="@drawable/safeanimation"
+            />
     </RelativeLayout>
 
     <RelativeLayout
