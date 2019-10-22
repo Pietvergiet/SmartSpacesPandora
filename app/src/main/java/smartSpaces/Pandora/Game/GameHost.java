@@ -23,12 +23,15 @@ public class GameHost {
     private HashMap<Object, Location> objects;
     private GameMap map;
 
-    public GameHost(int nPlayers, int nTasks, int panelAmount) {
-        playerAmount = nPlayers;
+    public GameHost(int nTasks, int panelAmount) {
         tasksToComplete = nTasks;
         panelsPerPlayer = panelAmount;
         playerTasks = new HashMap<>();
         playerList = new ArrayList<>();
+    }
+
+    public void setPlayerAmount(int amount){
+        playerAmount = amount;
     }
 
     public void addPlayer(Player player){

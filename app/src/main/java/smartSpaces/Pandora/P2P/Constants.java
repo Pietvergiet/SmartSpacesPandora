@@ -14,4 +14,12 @@ public interface Constants {
     String DEVICE_NAME = "device_name";
     String TOAST = "toast";
 
+    String HEADER_TASK = "T";
+    String HEADER_LOCATION = "L";
+    String HEADER_BUTTON = "B";
+
+    String MESSAGE_SEPARATOR = "-";
+    String MESSAGE_LIST_START = "[";
+    String MESSAGE_LIST_SEPARATOR = ",";
+    String MESSAGE_LIST_END = "]";
 }

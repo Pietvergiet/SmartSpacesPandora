@@ -13,15 +13,10 @@ import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
-
-import java.util.HashMap;
 
 import smartSpaces.Pandora.Picklock.R;
 
@@ -30,7 +25,7 @@ public class DeviceListActivity extends Activity {
     private static final String TAG = "DeviceListActivity";
     public static String EXTRA_DEVICE_ADDRESS  = "device_address";
     private SparseArray<BluetoothDevice> scannerdst;
-    private MyBluetoothService myBluetoothService;
+    private BluetoothService myBluetoothService;
     private BluetoothAdapter mBluetoothAdapter;
     private BluetoothAdapter mBtAdapter;
     private ArrayAdapter<String> mNewDevicesArrayAdapter;

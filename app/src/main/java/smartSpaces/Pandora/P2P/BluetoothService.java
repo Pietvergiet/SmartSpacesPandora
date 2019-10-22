@@ -1,210 +1,501 @@
 package smartSpaces.Pandora.P2P;
 
-
-import android.Manifest;
-import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.content.Intent;
+import android.bluetooth.BluetoothServerSocket;
+import android.bluetooth.BluetoothSocket;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
-import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.ListView;
-import android.widget.TextView;
 
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.FragmentActivity;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
 
-import java.util.ArrayList;
+/**
+ * This class does all the work for setting up and managing Bluetooth
+ * connections with other devices. It has a thread that listens for
+ * incoming connections, a thread for connecting with a device, and a
+ * thread for performing data transmissions when connected.
+ */
+public class BluetoothService {
+    private static final String TAG = "BService";
+    private Handler handler; // handler that gets info from Bluetooth service
 
-import smartSpaces.Pandora.Picklock.R;
+    private final static int MAX_CONNECTIONS = 5;
+    private final static java.util.UUID MY_UUID = java.util.UUID.fromString("bb807b74-dc2f-4f70-8c05-c101e7d55db7");
+    private final static String NAME = "PANDORA";
 
-import static android.content.pm.PackageManager.PERMISSION_DENIED;
-
-
-public class BluetoothService extends FragmentActivity {
-
-    // Intent request codes
-    private static final int REQUEST_CONNECT_DEVICE = 1;
-    private static final int REQUEST_ENABLE_BT = 3;
-
-    private static final String TAG = "BActivity";
-
-    private TextView tekst;
-    private TextView messageView;
-    private EditText editText;
-    private LinearLayout messageLayout;
-    private ArrayAdapter<String> mNewDevicesArrayAdapter;
-    private ArrayList<String> clients;
-    private ListView messageListView;
-
-    private MyBluetoothService myBluetoothService;
+    private boolean isServer;
+    private int connectionAmount = 0;
+    private AcceptThread aThread;
+    private ConnectThread cThread;
+    private ConnectedThread clientConnection;
+    private HashMap<Integer, ConnectedThread> serverConnections;
+    private HashMap<String, Integer> serverConnectionIds;
     private BluetoothAdapter mBluetoothAdapter;
 
+    private int mState;
+    private int mNewState;
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_bluetooth);
-        tekst = findViewById(R.id.textView);
-        messageView = findViewById(R.id.messageView);
-        editText = findViewById(R.id.messageSend);
-        mNewDevicesArrayAdapter = new ArrayAdapter<>(this, R.layout.device_name);
-        messageListView = findViewById(R.id.buttons);
-        messageListView.setAdapter(mNewDevicesArrayAdapter);
+    public static final int STATE_NONE = 0;       // we're doing nothing
+    public static final int STATE_LISTEN = 1;     // now listening for incoming connections
+    public static final int STATE_CONNECTING = 2; // now initiating an outgoing connection
+    public static final int STATE_CONNECTED = 3;  // now connected to a remote device
+    // Defines several constants used when transmitting messages between the
+    // service and the UI.
+    private interface MessageConstants {
+        public static final int MESSAGE_READ = 0;
+        public static final int MESSAGE_WRITE = 1;
+        public static final int MESSAGE_TOAST = 2;
+        public static final int NEW_CONNECTION = 3;
+
+        // ... (Add other message types here as needed.)
+    }
+
+    /**
+     * Constructor which indicates whether this instance of
+     * the class will behave as a server or a client
+     * @param s true if server, false if client
+     */
+    public BluetoothService(Handler h, boolean s) {
+        isServer = s;
+        handler = h;
+        mState = STATE_NONE;
+        mNewState = mState;
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (mBluetoothAdapter == null) {
-            Log.i(TAG,"Gaa bluetooth fien jow");
-        }
-        if (!mBluetoothAdapter.isEnabled()) {
-            // We need to enable the Bluetooth, so we ask the user
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-            mBluetoothAdapter.enable();
-        }
-
-        checkGetPermissions();
-        initBluetooth();
     }
 
-    private void initBluetooth() {
-        mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-
+    /**
+     * Starts the bluetooth server thread.
+     * This will listen for incoming connections after which communication is possible.
+     * A maximum of 5 clients can be connected.
+     */
+    public synchronized void host() {
+        serverConnections = new HashMap<>();
+        serverConnectionIds = new HashMap<>();
+        aThread = new AcceptThread();
+        aThread.start();
     }
 
-    private void makeConnection(Intent data) {
-        Bundle extras = data.getExtras();
-        if (extras == null) {
-            return;
-        }
-        String address = extras.getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
-        // Get the BluetoothDevice object
-        BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
-        tekst.setText("NIEWU: " + address);
-        int counter = 0;
-        mBluetoothAdapter.cancelDiscovery();
-        myBluetoothService.join(device);
-        tekst.setText("Waiting for connection");
-        while (!myBluetoothService.isClientConnected()) {
-            counter++;
-            if (counter%100 == 0) {
-                tekst.setText(tekst.getText() + ".");
-            }
-
-        }
-        tekst.setText("Connected to: " + myBluetoothService.getHostName());
+    /**
+     * Start the bluetooth client thread.
+     * This will connect to the specified device after which communication is possible.
+     * @param device The remote bluetooth device
+     */
+    public synchronized void join(BluetoothDevice device) {
+        cThread = new ConnectThread(device);
+        cThread.start();
     }
 
-    public void startHost(View view) {
-        myBluetoothService = new MyBluetoothService(mHandler, true);
-        buttonDis();
-        clients = new ArrayList<>();
-        Intent discoverableIntent =
-                new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
-        discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
-        startActivity(discoverableIntent);
-        myBluetoothService.host();
+    /**
+     * Write to the ConnectedThread
+     * If {@link #isServer} is true this will write to all connected devices
+     * Use {@link #write(byte[], int)} to write to a specific device
+     * @param out The bytes to write
+     */
+    public void write(byte[] out) {
+        // Create temporary object
 
-    }
-
-    public void joinHost(View view) {
-        myBluetoothService = new MyBluetoothService(mHandler, false);
-        Intent serverIntent = new Intent(BluetoothService.this, DeviceListActivity.class);
-        startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE);
-
-    }
-
-    public void startCommunication(View view){
-        mBluetoothAdapter.cancelDiscovery();
-        myBluetoothService.stopClientDiscovery();
-    }
-
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        switch (requestCode) {
-            case REQUEST_CONNECT_DEVICE:
-                // When DeviceListActivity returns with a device to connect
-                if (resultCode == Activity.RESULT_OK) {
-                    makeConnection(data);
+        // Synchronize a copy of the ConnectedThread
+        if (isServer) {
+            for (Map.Entry<Integer, ConnectedThread> c : serverConnections.entrySet()) {
+                ConnectedThread r;
+                synchronized (this) {
+//                  if (mState != STATE_CONNECTED) return;
+                    r = c.getValue();
                 }
-                break;
+                r.write(out);
+            }
+        } else {
+            ConnectedThread r;
+            synchronized (this) {
+//            if (mState != STATE_CONNECTED) return;
+                r = clientConnection;
+            }
+
+            // Perform the write unsynchronized
+            r.write(out);
+        }
+
+    }
+
+    /**
+     * Write to the specified ConnectedThread
+     * Use {@link #write(byte[])} to send to all connected devices.
+     * @param out The bytes to write
+     * @param id The id of the device
+     */
+    public void write(byte[] out, int id) {
+        // Create temporary object
+        ConnectedThread r;
+        // Synchronize a copy of the ConnectedThread
+        synchronized (this) {
+//            if (mState != STATE_CONNECTED) return;
+            r = serverConnections.get(id);
+        }
+        // Perform the write unsynchronized
+        r.write(out);
+    }
+
+    /**
+     * Starts communication between bluetooth sockets.
+     * Makes an instance of {@link ConnectedThread}
+     * which manages the Bluetooth connection.
+     * @param socket The socket
+     */
+    public synchronized void startConnection(BluetoothSocket socket) {
+        if (isServer){
+            connectionAmount++;
+            if (connectionAmount <= MAX_CONNECTIONS){
+                BluetoothSocket tmpS = socket;
+                ConnectedThread tmp = new ConnectedThread(tmpS);
+                tmp.start();
+                serverConnections.put(connectionAmount, tmp);
+                serverConnectionIds.put(socket.getRemoteDevice().getAddress(), connectionAmount);
+            }
+        } else {
+            if (cThread != null) {
+                cThread.cancel();
+                cThread = null;
+            }
+
+            if (clientConnection != null) {
+                clientConnection.cancel();
+                clientConnection = null;
+            }
+
+            BluetoothSocket tmpS = socket;
+            clientConnection = new ConnectedThread(tmpS);
+            clientConnection.start();
         }
     }
 
-    public void sendMessage(View view){
-        String tekst = ((EditText) findViewById(R.id.messageSend)).getText().toString();
-        editText.setText("");
-        myBluetoothService.write(tekst.getBytes());
-    }
-
-    private void checkGetPermissions() {
-        int checkCoarse = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION);
-        int MY_PERMISSIONS_REQUEST = 200;
-        int checkFine =ContextCompat.checkSelfPermission (this,Manifest.permission.ACCESS_FINE_LOCATION);
-        if (checkFine == PERMISSION_DENIED) {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                    MY_PERMISSIONS_REQUEST);
-        }
-        if (checkCoarse == PERMISSION_DENIED) {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
-                    MY_PERMISSIONS_REQUEST);
+    /**
+     * Stops waiting for new connections
+     */
+    public synchronized void stopClientDiscovery() {
+        if (aThread != null) {
+            aThread.cancel();
+            aThread = null;
         }
     }
 
-    private void buttonDis() {
-        findViewById(R.id.Host).setEnabled(false);
-        findViewById(R.id.Join).setEnabled(false);
+    /**
+     * Checks if the client is connected to a remote device.
+     * @return true if the Socket is connected
+     */
+    public boolean isClientConnected() {
+        if (clientConnection != null) {
+            return clientConnection.mmSocket.isConnected();
+        }
+        return false;
     }
 
-    @SuppressLint("HandlerLeak")
-    private final Handler mHandler = new Handler() {
+    /**
+     * Return the name of the remote Bluetooth device the client is connected to.
+     * @return The name of the remote Bluetooth device
+     */
+    public String getHostName() {
+        if (isClientConnected()) {
+            return clientConnection.mmSocket.getRemoteDevice().getName();
+        }
+        return null;
+    }
 
-        @Override
-        public void handleMessage(Message msg) {
-//            FragmentActivity activity = getActivity();
-            switch (msg.what) {
-                case Constants.MESSAGE_WRITE:
-                    byte[] writeBuf = (byte[]) msg.obj;
-                    // construct a string from the buffer
-                    String writeMessage = new String(writeBuf);
-                    Log.i(TAG, "Writinng message : " + writeMessage);
-                    mNewDevicesArrayAdapter.add("You:\n" + writeMessage);
-                    break;
-                case Constants.MESSAGE_READ:
-                    byte[] readBuf = (byte[]) msg.obj;
-                    int clientId = msg.arg2;
-                    String clientName = clientId > -1 ? myBluetoothService.getConnectedClients().get(clientId).getName() : myBluetoothService.getHostName();
-                    // construct a string from the valid bytes in the buffer
-                    String readMessage = new String(readBuf, 0, msg.arg1);
-                    mNewDevicesArrayAdapter.add(clientName+ ":\n" + readMessage);
-                    messageView.setText(readMessage);
-                    Log.i(TAG, "Read message: " + readMessage);
-                    break;
-                case Constants.NEW_CONNECTION:
-                    clients.add(myBluetoothService.getConnectedClients().toString());
-                    String text = "Connected clients: " + clients.toString();
-                    Log.i(TAG, "Displayed connections: " + text);
-                    tekst.setText(text);
-                    break;
+    /**
+     * Returns a list of connected Bluetooth devices
+     * @return ArrayList of connected clients
+     */
+    public synchronized HashMap<Integer, BluetoothDevice> getConnectedClients(){
+        HashMap<Integer, BluetoothDevice> connectedDevices = new HashMap<>();
+        if (serverConnections != null && !serverConnections.isEmpty()){
+            for (Map.Entry<Integer, ConnectedThread> sc : serverConnections.entrySet()){
+                if(sc.getValue().mmSocket.isConnected()) {
+                    connectedDevices.put(sc.getKey(), sc.getValue().mmSocket.getRemoteDevice());
+                }
             }
         }
-    };
+        return connectedDevices;
+    }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (myBluetoothService != null){
-            myBluetoothService.stop();
-            myBluetoothService = null;
+    /**
+     * Stops all threads
+     */
+    public synchronized void stop(){
+        Log.d(TAG, "Stop");
+        if (aThread != null) {
+            aThread.cancel();
+            aThread = null;
+        }
+
+        if (cThread != null) {
+            cThread.cancel();
+            cThread = null;
+        }
+
+        if (serverConnections != null) {
+            for (Map.Entry<Integer, ConnectedThread> sc : serverConnections.entrySet()) {
+                if (sc.getValue() != null) {
+                    sc.getValue().cancel();
+                    serverConnections.remove(sc.getKey());
+                }
+            }
+            serverConnections.clear();
+            serverConnections = null;
+        }
+
+        if (clientConnection != null) {
+            clientConnection.cancel();
+            clientConnection = null;
+        }
+
+        mState = STATE_NONE;
+    }
+
+    /**
+     * Indicate that the connection attempt failed and notify the UI Activity.
+     */
+    private void connectionFailed() {
+        // Send a failure message back to the Activity
+        Message msg = handler.obtainMessage(Constants.MESSAGE_TOAST);
+        Bundle bundle = new Bundle();
+        bundle.putString(Constants.TOAST, "Unable to connect device");
+        msg.setData(bundle);
+        handler.sendMessage(msg);
+
+        mState = STATE_NONE;
+    }
+
+    /**
+     * Indicate that the connection was lost and notify the UI Activity.
+     */
+    private void connectionLost() {
+        // Send a failure message back to the Activity
+        Message msg = handler.obtainMessage(Constants.MESSAGE_TOAST);
+        Bundle bundle = new Bundle();
+        bundle.putString(Constants.TOAST, "Device connection was lost");
+        msg.setData(bundle);
+        handler.sendMessage(msg);
+
+        mState = STATE_NONE;
+    }
+
+    /**
+     * Server thread
+     */
+    private class AcceptThread extends Thread {
+
+        private BluetoothServerSocket mmServerSocket;
+
+        public AcceptThread() {
+            // Use a temporary object that is later assigned to mmServerSocket
+            // because mmServerSocket is final.
+            BluetoothServerSocket tmp = null;
+            try {
+                // MY_UUID is the app's UUID string, also used by the client code.
+                tmp = mBluetoothAdapter.listenUsingRfcommWithServiceRecord(NAME, MY_UUID);
+            } catch (IOException e) {
+                Log.i(TAG, "Socket's listen() method failed");
+            }
+            mmServerSocket = tmp;
+            mState = STATE_LISTEN;
+        }
+
+        public void run() {
+            BluetoothSocket socket = null;
+            // Keep listening until exception occurs or a socket is returned.
+            while (true) {
+                try {
+                    socket = mmServerSocket.accept();
+                } catch (IOException e) {
+                    Log.i(TAG, "Socket's accept() method failed");
+
+                }
+
+                if (socket != null) {
+                    synchronized (BluetoothService.this) {
+                        // A connection was accepted. Perform work associated with
+                        // the connection in a separate thread.
+                        startConnection(socket);
+                        Message readMsg = handler.obtainMessage(
+                                Constants.NEW_CONNECTION);
+                        readMsg.sendToTarget();
+                        Log.i(TAG, "New connection with: " + socket.getRemoteDevice().getName());
+//                    manageMyConnectedSocket(socket);
+//                        tekst.setText("Connected!!!");
+                        socket = null;
+                    }
+                }
+            }
+        }
+
+        // Closes the connect socket and causes the thread to finish.
+        public void cancel() {
+            try {
+                mmServerSocket.close();
+            } catch (IOException e) {
+                Log.e(TAG, "Could not close the connect socket", e);
+            }
         }
     }
 
+    /**
+     * Client thread
+     */
+    private class ConnectThread extends Thread {
+        private final BluetoothSocket mmSocket;
+        private final BluetoothDevice mmDevice;
+
+        public ConnectThread(BluetoothDevice device) {
+            // Use a temporary object that is later assigned to mmSocket
+            // because mmSocket is final.
+            BluetoothSocket tmp = null;
+            mmDevice = device;
+
+            try {
+                // Get a BluetoothSocket to connect with the given BluetoothDevice.
+                // MY_UUID is the app's UUID string, also used in the server code.
+                tmp = mmDevice.createRfcommSocketToServiceRecord(MY_UUID);
+            } catch (IOException e) {
+                Log.e(TAG, "Socket's create() method failed", e);
+            }
+            mmSocket = tmp;
+            mState = STATE_CONNECTING;
+        }
+
+        public void run() {
+            // Cancel discovery because it otherwise slows down the connection.
+            mBluetoothAdapter.cancelDiscovery();
+            Log.i(TAG,"STart connectiong");
+            try {
+                // Connect to the remote device through the socket. This call blocks
+                // until it succeeds or throws an exception.
+                mmSocket.connect();
+            } catch (IOException connectException) {
+                Log.i(TAG,"Shit is stukkkkk");
+                // Unable to connect; close the socket and return.
+                try {
+                    mmSocket.close();
+                } catch (IOException closeException) {
+                    Log.i(TAG,"Shit is stuk");
+                    Log.e(TAG,"Could not close the client socket", closeException);
+                }
+                connectionFailed();
+                return;
+            }
+
+            // Reset the ConnectThread because we're done
+            synchronized (BluetoothService.this) {
+                cThread = null;
+            }
+
+            startConnection(mmSocket);
+            // The connection attempt succeeded. Perform work associated with
+            // the connection in a separate thread.
+//            manageMyConnectedSocket(mmSocket);
+        }
+
+        // Closes the client socket and causes the thread to finish.
+        public void cancel() {
+            try {
+                mmSocket.close();
+            } catch (IOException e) {
+                Log.e(TAG, "Could not close the client socket", e);
+            }
+        }
+    }
+
+    /**
+     * Communication manager thread
+     */
+    private class ConnectedThread extends Thread {
+        private final BluetoothSocket mmSocket;
+        private final InputStream mmInStream;
+        private final OutputStream mmOutStream;
+        private byte[] mmBuffer; // mmBuffer store for the stream
+
+        public ConnectedThread(BluetoothSocket socket) {
+            mmSocket = socket;
+            InputStream tmpIn = null;
+            OutputStream tmpOut = null;
+
+            // Get the input and output streams; using temp objects because
+            // member streams are final.
+            try {
+                tmpIn = socket.getInputStream();
+            } catch (IOException e) {
+                Log.e(TAG, "Error occurred when creating input stream", e);
+            }
+            try {
+                tmpOut = socket.getOutputStream();
+            } catch (IOException e) {
+                Log.e(TAG, "Error occurred when creating output stream", e);
+            }
+
+            mmInStream = tmpIn;
+            mmOutStream = tmpOut;
+            mState = STATE_CONNECTED;
+        }
+
+        public void run() {
+            mmBuffer = new byte[1024];
+            int numBytes; // bytes returned from read()
+            int clientId;
+
+            // Keep listening to the InputStream until an exception occurs.
+            while (mState == STATE_CONNECTED) {
+                try {
+                    // Read from the InputStream.
+                    numBytes = mmInStream.read(mmBuffer);
+
+                    clientId = isServer ? serverConnectionIds.get(mmSocket.getRemoteDevice().getAddress()) : -1;
+                    // Send the obtained bytes to the UI activity.
+                    Message readMsg = handler.obtainMessage(
+                            Constants.MESSAGE_READ, numBytes, clientId,
+                            mmBuffer);
+                    readMsg.sendToTarget();
+                } catch (IOException e) {
+                    Log.d(TAG, "Input stream was disconnected", e);
+                    connectionLost();
+                    break;
+                }
+            }
+        }
+
+        // Call this from the main activity to send data to the remote device.
+        public void write(byte[] bytes) {
+            try {
+                mmOutStream.write(bytes);
+
+                // Share the sent message with the UI activity.
+                Message writtenMsg = handler.obtainMessage(
+                        Constants.MESSAGE_WRITE, -1, -1, mmBuffer);
+                writtenMsg.sendToTarget();
+            } catch (IOException e) {
+                Log.e(TAG, "Error occurred when sending data", e);
+
+                // Send a failure message back to the activity.
+                Message writeErrorMsg =
+                        handler.obtainMessage(MessageConstants.MESSAGE_TOAST);
+                Bundle bundle = new Bundle();
+                bundle.putString("toast",
+                        "Couldn't send data to the other device");
+                writeErrorMsg.setData(bundle);
+                handler.sendMessage(writeErrorMsg);
+            }
+        }
+
+        // Call this method from the main activity to shut down the connection.
+        public void cancel() {
+            try {
+                mmSocket.close();
+            } catch (IOException e) {
+                Log.e(TAG, "Could not close the connect socket", e);
+            }
+        }
+    }
 }
