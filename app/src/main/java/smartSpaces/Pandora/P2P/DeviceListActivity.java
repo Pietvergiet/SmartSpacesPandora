@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
 import android.view.Window;
@@ -35,7 +36,7 @@ public class DeviceListActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        Log.i(TAG, "Start Devicelist");
         // Setup the window
         requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
         setContentView(R.layout.device_list_layout);
@@ -121,6 +122,7 @@ public class DeviceListActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        Log.i(TAG, "DEVICE DESTROYED");
         super.onDestroy();
 
         // Make sure we're not doing discovery anymore

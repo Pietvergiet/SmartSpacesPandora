@@ -21,6 +21,7 @@
         <activity android:name="smartSpaces.Pandora.WinScreen" />
         <activity android:name="smartSpaces.Pandora.ExplorerGameScreen" />
         <activity android:name="smartSpaces.Pandora.CoordinatorGameScreen" />
+        <activity android:name="smartSpaces.Pandora.P2P.DeviceListActivity" />
         <activity android:name="smartSpaces.Pandora.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

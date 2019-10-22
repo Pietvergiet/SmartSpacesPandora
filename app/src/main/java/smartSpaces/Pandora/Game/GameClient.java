@@ -8,8 +8,8 @@ public class GameClient {
     private Task displayTask;
     private GameMap map;
 
-    public GameClient(Player p){
-        player = p;
+    public void setPlayer(Player player){
+        this.player = player;
     }
 
     public void setTask(Task task){

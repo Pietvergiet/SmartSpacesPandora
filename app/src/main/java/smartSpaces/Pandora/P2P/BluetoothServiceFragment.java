@@ -2,12 +2,17 @@ package smartSpaces.Pandora.P2P;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.core.app.ActivityCompat;
@@ -18,6 +23,7 @@ import androidx.fragment.app.FragmentActivity;
 import java.util.ArrayList;
 
 import smartSpaces.Pandora.Game.Tasks.Task;
+import smartSpaces.Pandora.Picklock.R;
 
 import static android.content.pm.PackageManager.PERMISSION_DENIED;
 
@@ -32,9 +38,14 @@ public class BluetoothServiceFragment extends Fragment {
     private BluetoothAdapter mBluetoothAdapter;
     private boolean isHost;
     private ArrayList<String> clients;
+    private Handler cHandler;
+    private Context curContext;
+    private boolean isStarted = false;
 
-    public BluetoothServiceFragment(boolean isHost){
+    public BluetoothServiceFragment(boolean isHost, Handler handler, Context context) {
         this.isHost = isHost;
+        cHandler = handler;
+        curContext = context;
     }
 
     @Override
@@ -64,38 +75,92 @@ public class BluetoothServiceFragment extends Fragment {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
             mBluetoothAdapter.enable();
+
         }
 
         checkGetPermissions();
 
-        if(isHost){
-            startHost();
-        } else {
-            startClient();
+        while (!mBluetoothAdapter.isEnabled()) {
+
         }
+        if (!isStarted) {
+            if (isHost) {
+                Log.i(TAG, "START HOST");
+                startHost();
+            } else {
+                Log.i(TAG, "START CLIENT");
+                startClient();
+            }
+        }
+
+
     }
 
     private void startHost() {
-        myBluetoothService = new BluetoothService(mHandler, true);
+        isStarted = true;
+        myBluetoothService = new BluetoothService(bHandler, true);
         clients = new ArrayList<>();
         Intent discoverableIntent =
                 new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
         discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
         startActivity(discoverableIntent);
         myBluetoothService.host();
+        ((Activity) curContext).findViewById(R.id.modal_start).setVisibility(View.VISIBLE);
     }
 
     private void startClient() {
-        myBluetoothService = new BluetoothService(mHandler, false);
+        isStarted = true;
+        myBluetoothService = new BluetoothService(bHandler, false);
         Intent serverIntent = new Intent(getActivity(), DeviceListActivity.class);
-        startActivityForResult(serverIntent, REQUEST_CONNECT_DEVICE);
+        startActivityForResult(serverIntent, Constants.REQUEST_CONNECT_DEVICE);
+    }
+
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.i(TAG, "ONACTIVITY CALLED");
+        switch (requestCode) {
+            case Constants.REQUEST_CONNECT_DEVICE:
+                // When DeviceListActivity returns with a device to connect
+                if (resultCode == Activity.RESULT_OK) {
+                    Log.i(TAG, "Get HOST ADDRESS123");
+                    makeConnection(data);
+                } else if (resultCode == Activity.RESULT_CANCELED) {
+                    Log.i(TAG, "RESULT CANCELED");
+                }
+
+                break;
+        }
+    }
+
+    private void makeConnection(Intent data) {
+        //TODO Acties
+        Bundle extras = data.getExtras();
+        if (extras == null) {
+            return;
+        }
+        String address = extras.getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
+        // Get the BluetoothDevice object
+        BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
+
+        ((Activity) curContext).findViewById(R.id.modal_client_start).setVisibility(View.VISIBLE);
+        TextView tekst = ((Activity) curContext).findViewById(R.id.isConnected);
+        int counter = 0;
+        tekst.setText("Connecting to host");
+        mBluetoothAdapter.cancelDiscovery();
+        myBluetoothService.join(device);
+        while (!myBluetoothService.isClientConnected()) {
+            counter++;
+            if (counter % 100 == 0) {
+            }
+
+        }
+        tekst.setText("Connected to: " + myBluetoothService.getHostName());
     }
 
     private void checkGetPermissions() {
         FragmentActivity activity = getActivity();
         int checkCoarse = ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION);
         int MY_PERMISSIONS_REQUEST = 200;
-        int checkFine =ContextCompat.checkSelfPermission (activity,Manifest.permission.ACCESS_FINE_LOCATION);
+        int checkFine = ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION);
         if (checkFine == PERMISSION_DENIED) {
             ActivityCompat.requestPermissions(activity,
                     new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
@@ -109,7 +174,7 @@ public class BluetoothServiceFragment extends Fragment {
     }
 
     @SuppressLint("HandlerLeak")
-    private final Handler mHandler = new Handler() {
+    private final Handler bHandler = new Handler() {
 
         @Override
         public void handleMessage(Message msg) {
@@ -132,6 +197,11 @@ public class BluetoothServiceFragment extends Fragment {
                     clients.add(myBluetoothService.getConnectedClients().toString());
                     String text = "Connected clients: " + clients.toString();
                     Log.i(TAG, "Displayed connections: " + text);
+                    if (isHost) {
+                        Message readMsg = cHandler.obtainMessage(
+                                Constants.NEW_CONNECTION, clients.size());
+                        readMsg.sendToTarget();
+                    }
                     break;
             }
         }
@@ -139,10 +209,12 @@ public class BluetoothServiceFragment extends Fragment {
 
     @Override
     public void onDestroy() {
+        Log.i(TAG, "FRAGMENT IS GONE");
         super.onDestroy();
-        if (myBluetoothService != null){
+        if (myBluetoothService != null) {
             myBluetoothService.stop();
             myBluetoothService = null;
         }
+        isStarted = false;
     }
 }
