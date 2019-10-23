@@ -185,7 +185,7 @@ public class InstructionScreen extends AppCompatActivity {
         if (isAnimating) {
             return;
         } else if (currentInstruction == instructionTexts.size()-1) {
-            goToNext();
+            goToNext(view);
         } else {
             animateFadeOutInText(instructionTexts.get(currentInstruction));
 
@@ -193,7 +193,7 @@ public class InstructionScreen extends AppCompatActivity {
         }
     }
 
-    public void goToNext() {
+    public void goToNext(View view) {
         if (role == COORDINATOR_ROLE){
             goToCoordinator();
         } else if (role == EXPLORER_ROLE) {

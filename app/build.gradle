@@ -5,8 +5,8 @@ android {
     buildToolsVersion "29.0.2"
     defaultConfig {
         applicationId "smartSpaces.Pandora"
-        minSdkVersion 15
-        targetSdkVersion 29
+        minSdkVersion 17
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -26,4 +26,5 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test:runner:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
+    implementation 'pl.droidsonroids.gif:android-gif-drawable:1.2.19'
 }
