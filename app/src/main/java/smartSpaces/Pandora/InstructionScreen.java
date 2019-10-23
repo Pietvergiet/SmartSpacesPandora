@@ -2,6 +2,7 @@ package smartSpaces.Pandora;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -18,6 +19,9 @@ import org.w3c.dom.Text;
 import java.lang.reflect.Array;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+
+import smartSpaces.Pandora.P2P.Constants;
+import smartSpaces.Pandora.Picklock.R;
 
 public class InstructionScreen extends AppCompatActivity {
     private int COORDINATOR_ROLE = 0;
@@ -198,8 +202,10 @@ public class InstructionScreen extends AppCompatActivity {
     }
 
     public void goToCoordinator() {
-        Intent intent = new Intent(this, CoordinatorGameScreen.class);
-        startActivity(intent);
+        Intent intent = new Intent();
+        // Set result and finish this Activity
+        setResult(Activity.RESULT_OK, intent);
+        finish();
     }
 
     public void goToExplorer() {

@@ -1,0 +1,4 @@
+package smartSpaces.Pandora.Game.Tasks;
+
+
+public enum TaskTypes {MOTION, PANEL, LOCATION, CONCURRENT, MOTION_LOCATION, MOTION_CONCURRENT, LOCATION_CONCURRENT}
