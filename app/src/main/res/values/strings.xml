@@ -1,3 +1,32 @@
 <resources>
     <string name="app_name">Pandora</string>
+    <string name="btn_host">Host game</string>
+    <string name="btn_join">Join game</string>
+    <string name="n_tasks_completed">Tasks completed:\u0020</string>
+    <string name="n_tasks_left">Tasks left:\u0020</string>
+    <string name="timer">Timer</string>
+    <string name="game_code">Game code:</string>
+    <string name="enter_game_code">Enter game code:</string>
+    <string name="description_wait">Wait for other players to join, start game when everybody joined.</string>
+    <string name="players_joined">\u0020players joined.</string>
+    <string name="start_game">Start game</string>
+    <string name="enter_game">Enter game</string>
+    <string name="wait_for_start">Waiting for the host to start the game...</string>
+    <string name="won">You won!</string>
+    <string name="lost">You lost!</string>
+    <string name="new_game">Another game</string>
+    <string name="home">Return home</string>
+    <string name="instruction_1">Hi there &#8230; \n You guys must be wondering why I\'m keeping you in this barn&#8230; \n Are you frightened?</string>
+    <string name="instruction_2">Good for you.</string>
+    <string name="instruction_3">If you want to get out, you will have to do some tasks for me.</string>
+    <string name="instruction_4">Pay attention though, you cannot complete your own tasks! You\'ll have to make others do it, within the time of course.</string>
+    <string name="instruction_5">You have 10 minutes to complete at least 20 tasks. If you cannot make it, I\'ll have to end your lives.</string>
+    <string name="instruction_6">Otherwise, I might let you go. But we\'ll see about that.</string>
+    <string name="instruction_7">Good luck... Mwoohahahahahaha</string>
+    <string name="continue_game">Continue</string>
+    <string name="host">Host</string>
+    <string name="Join">Join</string>
+    <string name="select_device">Select the host from the list.</string>
+    <string name="no_devices_found">No devices found.</string>
+
 </resources>
