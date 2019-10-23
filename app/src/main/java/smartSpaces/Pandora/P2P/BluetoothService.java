@@ -39,12 +39,11 @@ public class BluetoothService {
     private BluetoothAdapter mBluetoothAdapter;
 
     private int mState;
-    private int mNewState;
 
-    public static final int STATE_NONE = 0;       // we're doing nothing
-    public static final int STATE_LISTEN = 1;     // now listening for incoming connections
-    public static final int STATE_CONNECTING = 2; // now initiating an outgoing connection
-    public static final int STATE_CONNECTED = 3;  // now connected to a remote device
+    private static final int STATE_NONE = 0;       // we're doing nothing
+    private static final int STATE_LISTEN = 1;     // now listening for incoming connections
+    private static final int STATE_CONNECTING = 2; // now initiating an outgoing connection
+    private static final int STATE_CONNECTED = 3;  // now connected to a remote device
     // Defines several constants used when transmitting messages between the
     // service and the UI.
     private interface MessageConstants {
@@ -65,7 +64,6 @@ public class BluetoothService {
         isServer = s;
         handler = h;
         mState = STATE_NONE;
-        mNewState = mState;
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     }
 
@@ -92,7 +90,7 @@ public class BluetoothService {
     }
 
     /**
-     * Write to the ConnectedThread
+     * Write to the {@link ConnectedThread}
      * If {@link #isServer} is true this will write to all connected devices
      * Use {@link #write(byte[], int)} to write to a specific device
      * @param out The bytes to write
@@ -124,7 +122,8 @@ public class BluetoothService {
     }
 
     /**
-     * Write to the specified ConnectedThread
+     * Write to the specified {@link ConnectedThread}
+     * Won't send anything if the id does not exist.
      * Use {@link #write(byte[])} to send to all connected devices.
      * @param out The bytes to write
      * @param id The id of the device
@@ -138,7 +137,9 @@ public class BluetoothService {
             r = serverConnections.get(id);
         }
         // Perform the write unsynchronized
-        r.write(out);
+        if (r != null) {
+            r.write(out);
+        }
     }
 
     /**

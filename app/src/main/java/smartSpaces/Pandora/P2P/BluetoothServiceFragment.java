@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -21,6 +22,8 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import smartSpaces.Pandora.Game.Tasks.Task;
 import smartSpaces.Pandora.Picklock.R;
@@ -37,7 +40,10 @@ public class BluetoothServiceFragment extends Fragment {
     private BluetoothService myBluetoothService;
     private BluetoothAdapter mBluetoothAdapter;
     private boolean isHost;
-    private ArrayList<String> clients;
+    /**
+     * Will always be filled regardless if the service is host or client.
+     */
+    private HashMap<Integer, String> clients;
     private Handler cHandler;
     private Context curContext;
     private boolean isStarted = false;
@@ -96,10 +102,13 @@ public class BluetoothServiceFragment extends Fragment {
 
     }
 
+    /**
+     * Starts the a {@link BluetoothService} as host and edits the view in the start screen.
+     */
     private void startHost() {
         isStarted = true;
         myBluetoothService = new BluetoothService(bHandler, true);
-        clients = new ArrayList<>();
+        clients = new HashMap<>();
         Intent discoverableIntent =
                 new Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
         discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
@@ -108,6 +117,9 @@ public class BluetoothServiceFragment extends Fragment {
         ((Activity) curContext).findViewById(R.id.modal_start).setVisibility(View.VISIBLE);
     }
 
+    /**
+     * Starts a {@link BluetoothService} as a client and start a {@link DeviceListActivity}.
+     */
     private void startClient() {
         isStarted = true;
         myBluetoothService = new BluetoothService(bHandler, false);
@@ -131,6 +143,10 @@ public class BluetoothServiceFragment extends Fragment {
         }
     }
 
+    /**
+     * Uses the data returned from {@link DeviceListActivity} to connect to the host and edits the view in the home screen.
+     * @param data The MAC address of the host.
+     */
     private void makeConnection(Intent data) {
         //TODO Acties
         Bundle extras = data.getExtras();
@@ -156,6 +172,26 @@ public class BluetoothServiceFragment extends Fragment {
         tekst.setText("Connected to: " + myBluetoothService.getHostName());
     }
 
+    /**
+     * Sends a message to all connected Bluetooth devices.
+     * @param message The message
+     */
+    public void sendMessage(String message) {
+        myBluetoothService.write(message.getBytes());
+    }
+
+    /**
+     * Sends a message to a specific connected Bluetooth device.
+     * @param message The message
+     * @param id The internal id of the connected Bluetooth device.
+     */
+    public void sendMessage(String message, int id) {
+        myBluetoothService.write(message.getBytes(), id);
+    }
+
+    /**
+     * Checks if all required permissions are giving and otherwise ask for those permissions.
+     */
     private void checkGetPermissions() {
         FragmentActivity activity = getActivity();
         int checkCoarse = ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION);
@@ -191,16 +227,21 @@ public class BluetoothServiceFragment extends Fragment {
                     String clientName = clientId > -1 ? myBluetoothService.getConnectedClients().get(clientId).getName() : myBluetoothService.getHostName();
                     // construct a string from the valid bytes in the buffer
                     String readMessage = new String(readBuf, 0, msg.arg1);
+                    Message readMsg = cHandler.obtainMessage(
+                            Constants.MESSAGE_DEVICE_NAME, clientId, -1, readMessage);
+                    readMsg.sendToTarget();
                     Log.i(TAG, "Read message: " + readMessage);
                     break;
                 case Constants.NEW_CONNECTION:
-                    clients.add(myBluetoothService.getConnectedClients().toString());
+                    for (Map.Entry<Integer, BluetoothDevice> bd : myBluetoothService.getConnectedClients().entrySet()) {
+                        clients.put(bd.getKey(), bd.getValue().getName());
+                    }
                     String text = "Connected clients: " + clients.toString();
                     Log.i(TAG, "Displayed connections: " + text);
                     if (isHost) {
-                        Message readMsg = cHandler.obtainMessage(
+                        Message conMessage = cHandler.obtainMessage(
                                 Constants.NEW_CONNECTION, clients.size());
-                        readMsg.sendToTarget();
+                        conMessage.sendToTarget();
                     }
                     break;
             }

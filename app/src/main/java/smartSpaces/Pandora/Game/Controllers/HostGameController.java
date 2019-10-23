@@ -31,7 +31,7 @@ import smartSpaces.Pandora.Picklock.R;
 public class HostGameController {
     private static final String TAG = "HostController";
 
-    private BluetoothService bService;
+    private BluetoothServiceFragment bServiceFragment;
     private GameHost game;
     private Context gameView;
 
@@ -43,9 +43,14 @@ public class HostGameController {
 //        intent.putExtra("role", 0);
 //        ((Activity)view).startActivityForResult(intent, Constants.INSTRUCTION_DONE);
         gameView = view;
-        FragmentTransaction transaction = ((FragmentActivity) view).getSupportFragmentManager().beginTransaction();
-        BluetoothServiceFragment fragment = new BluetoothServiceFragment(true, hostHandler, view);
-        transaction.add(android.R.id.content, fragment);
+        bServiceFragment = new BluetoothServiceFragment(true, hostHandler, view);
+        startBluetooth();
+    }
+
+    private void startBluetooth() {
+        FragmentTransaction transaction = ((FragmentActivity) gameView).getSupportFragmentManager().beginTransaction();
+
+        transaction.add(android.R.id.content, bServiceFragment);
         transaction.commit();
     }
 
@@ -59,7 +64,7 @@ public class HostGameController {
         message.add(Constants.HEADER_TASK);
         message.add(task.getDescription());
         String out = TextUtils.join(Constants.MESSAGE_SEPARATOR, message);
-        bService.write(out.getBytes(), playerId);
+        bServiceFragment.sendMessage(out, playerId);
     }
 
     private void sendLocationObject(MapObject object, int playerId) {
@@ -68,7 +73,7 @@ public class HostGameController {
         message.add(String.valueOf(object.getResource()));
         String out = TextUtils.join(Constants.MESSAGE_SEPARATOR, message);
 
-        bService.write(out.getBytes(), playerId);
+        bServiceFragment.sendMessage(out, playerId);
     }
 
     private void sendPlayerPanels(Panel[] buttons, int playerId){
@@ -86,7 +91,7 @@ public class HostGameController {
 
         String out = TextUtils.join(Constants.MESSAGE_SEPARATOR, message);
 
-        bService.write(out.getBytes(), playerId);
+        bServiceFragment.sendMessage(out, playerId);
     }
 
     @SuppressLint("HandlerLeak")
@@ -96,7 +101,7 @@ public class HostGameController {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case Constants.MESSAGE_READ:
-
+                    Log.i(TAG, "Message READ");
                     break;
                 case Constants.LOCATION_FOUND:
 
