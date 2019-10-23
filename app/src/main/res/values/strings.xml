@@ -25,4 +25,8 @@
     <string name="instruction_7">Good luck... Moohahahahahaha</string>
     <string name="continue_game">Continue</string>
     <string name="skip_intro">Skip intro \></string>
+    <string name="host">Host</string>
+    <string name="Join">Join</string>
+    <string name="select_device">Select the host from the list.</string>
+    <string name="no_devices_found">No devices found.</string>
 </resources>

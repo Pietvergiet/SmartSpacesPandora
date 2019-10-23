@@ -1,0 +1,282 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="smartSpaces.Pandora.CoordinatorGameScreen">
+
+    <RelativeLayout
+        android:id="@+id/map"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/map_background"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/black"/>
+
+        <RelativeLayout
+            android:id="@+id/map_objects"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/task_container"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_below="@+id/map"
+        android:layout_centerHorizontal="true"
+        android:padding="10dp"
+        android:paddingLeft="20dp"
+        android:background="@color/black">
+        <TextView
+            android:id="@+id/task"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:layout_centerHorizontal="true"
+            android:layout_marginLeft="20dp"
+            android:text="[Task]"
+            android:textColor="@color/white"/>
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/task_timer"
+        android:layout_below="@id/task_container">
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:progress="0"
+            android:background="@color/black"
+            android:progressTint="@color/timerRed"
+            android:padding="0dp"
+            android:layout_margin="0dp"
+            android:layout_marginTop="0dp"
+            android:max="100" />
+    </RelativeLayout>
+
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/task_timer"
+        android:background="@drawable/concrete2"
+        android:padding="15dp">
+        <LinearLayout
+            android:id="@+id/tasks_completed_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" >
+
+            <TextView
+                android:id="@+id/tasks_completed_description"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#000"
+                android:fontFamily="@font/gloria_hallelujah"
+                android:textSize="16dp"
+                android:text="@string/n_tasks_completed" />
+
+            <TextView
+                android:id="@+id/tasks_completed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/gloria_hallelujah"
+                android:textColor="#000"
+                android:textSize="16dp"
+                android:text="8" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/tasks_left_description"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/tasks_completed_container"
+            android:orientation="horizontal" >
+
+            <TextView
+                android:id="@+id/tasks_left_description_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/gloria_hallelujah"
+                android:textColor="#000"
+                android:textSize="16dp"
+                android:text="@string/n_tasks_left" />
+
+            <TextView
+                android:id="@+id/tasks_left"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/gloria_hallelujah"
+                android:textColor="#000"
+                android:textSize="16dp"
+                android:text="30" />
+
+        </LinearLayout>
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:layout_alignParentBottom="true"
+        android:background="@color/black" >
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="80dp"
+            android:layout_centerInParent="true"
+            android:layout_centerHorizontal="true"
+            android:background="@color/black"
+            android:padding="10dp">
+
+            <ImageView
+                android:id="@+id/time_mf"
+                android:layout_width="40dp"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/timer"
+                android:src="@drawable/i0" />
+
+            <ImageView
+                android:id="@+id/time_ms"
+                android:layout_width="40dp"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/timer"
+                android:src="@drawable/i0" />
+
+            <ImageView
+                android:layout_width="15dp"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/timer"
+                android:src="@drawable/dubbelepunt" />
+
+            <ImageView
+                android:id="@+id/time_sf"
+                android:layout_width="40dp"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/timer"
+                android:src="@drawable/i0" />
+
+            <ImageView
+                android:id="@+id/time_ss"
+                android:layout_width="40dp"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/timer"
+                android:src="@drawable/i0" />
+
+            <!--        <ImageButton-->
+            <!--            android:layout_width="60dp"-->
+            <!--            android:layout_height="60dp"-->
+            <!--            android:src="@drawable/shutdown"-->
+            <!--            android:scaleType="fitCenter"-->
+            <!--            android:layout_marginLeft="50dp"-->
+            <!--            android:padding="15dp"-->
+            <!--            android:background="@drawable/panel"-->
+            <!--            android:shape="ring"/>-->
+        </LinearLayout>
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/modal_start"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true"
+        android:elevation="10dp"
+        android:background="@color/white"
+        android:padding="30dp">
+
+        <TextView
+            android:id="@+id/room_description2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingBottom="10dp"
+            android:text="@string/description_wait"
+            android:fontFamily="@font/gloria_hallelujah"
+            android:textColor="@color/black"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/room_description2"
+            android:paddingBottom="15dp">
+
+            <TextView
+                android:id="@+id/amount_players"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/gloria_hallelujah"
+                android:textColor="@color/black"
+                android:text="3" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/gloria_hallelujah"
+                android:textColor="@color/black"
+                android:text="@string/players_joined" />
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btn_start"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/start_game"
+            android:background="@color/black"
+            android:textColor="@color/white"
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true"
+            android:textSize="25dp"
+            android:padding="10dp"
+            android:onClick="startGame"/>
+    </RelativeLayout>
+
+    <ImageView
+        android:id="@+id/blood1"
+        android:layout_width="282dp"
+        android:layout_height="371dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginEnd="15dp"
+        android:layout_marginRight="15dp"
+        android:layout_marginBottom="-3dp" />
+
+    <ImageView
+        android:id="@+id/blood3"
+        android:layout_width="282dp"
+        android:layout_height="371dp"
+        android:layout_centerVertical="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
+
+    <ImageView
+        android:id="@+id/blood2"
+        android:layout_width="335dp"
+        android:layout_height="296dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="-82dp"
+        android:layout_marginLeft="-82dp"
+        android:layout_marginTop="-57dp" />
+
+    <ImageView
+        android:id="@+id/thumbsup"
+        android:layout_width="300dp"
+        android:layout_height="300dp"
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true"
+        android:elevation="10dp"/>
+
+
+</RelativeLayout>
