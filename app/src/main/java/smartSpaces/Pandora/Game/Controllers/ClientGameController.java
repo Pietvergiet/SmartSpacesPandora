@@ -10,6 +10,7 @@ import androidx.fragment.app.FragmentTransaction;
 
 import smartSpaces.Pandora.Game.GameClient;
 import smartSpaces.Pandora.Game.GameHost;
+import smartSpaces.Pandora.Game.Player;
 import smartSpaces.Pandora.P2P.BluetoothService;
 import smartSpaces.Pandora.P2P.BluetoothServiceFragment;
 import smartSpaces.Pandora.P2P.Constants;
@@ -17,9 +18,12 @@ import smartSpaces.Pandora.P2P.Constants;
 public class ClientGameController {
     private GameClient game;
     BluetoothServiceFragment fragment;
+    private Player player;
 
     public ClientGameController(GameClient game, Context view) {
         this.game = game;
+        this.player = new Player(false);
+
 //        this.gameView = view;
 
 //        Intent intent = new Intent(view, InstructionScreen.class);
@@ -66,6 +70,15 @@ public class ClientGameController {
 
                 break;
             case Constants.HEADER_BUTTON:
+                String btnAmount = splittedMesssage[1];
+                String list = splittedMesssage[2];
+                String[] listElement = list.split(Constants.MESSAGE_LIST_SEPARATOR);
+                for (int i = 0; i < listElement.length; i ++) {
+                    String[] elementItems = listElement[i].split(Constants.MESSAGE_LIST_ELEMENT_SEPARATOR);
+                    String buttonId = elementItems[0];
+                    String verb = elementItems[1];
+                    String object = elementItems[2];
+                }
 
                 break;
         }

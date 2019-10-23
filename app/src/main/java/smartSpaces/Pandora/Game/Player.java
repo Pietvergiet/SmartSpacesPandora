@@ -14,6 +14,10 @@ public class Player {
         this.panels = panels;
     }
 
+    public Player(boolean mapPlayer) {
+        hasMap = mapPlayer;
+    }
+
     public void setPanel(int index, Panel panel) {
         if (index >= 0 && index < panels.length){
             panels[index] = panel;
