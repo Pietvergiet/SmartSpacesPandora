@@ -10,11 +10,13 @@ import androidx.fragment.app.FragmentTransaction;
 
 import smartSpaces.Pandora.Game.GameClient;
 import smartSpaces.Pandora.Game.GameHost;
+import smartSpaces.Pandora.P2P.BluetoothService;
 import smartSpaces.Pandora.P2P.BluetoothServiceFragment;
 import smartSpaces.Pandora.P2P.Constants;
 
 public class ClientGameController {
     private GameClient game;
+    BluetoothServiceFragment fragment;
 
     public ClientGameController(GameClient game, Context view) {
         this.game = game;
@@ -25,7 +27,7 @@ public class ClientGameController {
 //        ((Activity)view).startActivityForResult(intent, Constants.INSTRUCTION_DONE);
 
         FragmentTransaction transaction = ((FragmentActivity) view).getSupportFragmentManager().beginTransaction();
-        BluetoothServiceFragment fragment = new BluetoothServiceFragment(false, clientHandler, view);
+        fragment = new BluetoothServiceFragment(false, clientHandler, view);
         transaction.add(android.R.id.content, fragment);
         transaction.commit();
     }
@@ -41,6 +43,7 @@ public class ClientGameController {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case Constants.MESSAGE_READ:
+                    readMessage((String) msg.obj);
 
                     break;
                 case Constants.LOCATION_FOUND:
@@ -52,4 +55,19 @@ public class ClientGameController {
             }
         }
     };
+
+    private void readMessage(String msg) {
+        String[] splittedMesssage = msg.split(Constants.MESSAGE_SEPARATOR);
+        switch (splittedMesssage[0]) {
+            case Constants.HEADER_TASK:
+
+                break;
+            case Constants.HEADER_LOCATION:
+
+                break;
+            case Constants.HEADER_BUTTON:
+
+                break;
+        }
+    }
 }
