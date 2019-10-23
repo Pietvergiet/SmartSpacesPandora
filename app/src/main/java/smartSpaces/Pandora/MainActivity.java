@@ -93,14 +93,6 @@ public class MainActivity extends AppCompatActivity {
                     Log.i(TAG, "Intstuction OK");
                 }
                 break;
-            case Constants.REQUEST_CONNECT_DEVICE:
-                Log.i(TAG, "Correct actitvyti connect device");
-                // When DeviceListActivity returns with a device to connect
-                if (resultCode == Activity.RESULT_OK) {
-                    Log.i(TAG, "Get HOST ADDRESS");
-//                    makeConnection(data);
-                }
-                break;
             default:
                 Log.i(TAG, "super onactivity calledS");
                 super.onActivityResult(requestCode, resultCode, intent);
