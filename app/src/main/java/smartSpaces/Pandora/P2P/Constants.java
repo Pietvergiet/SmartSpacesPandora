@@ -15,10 +15,6 @@ public interface Constants {
 
     int INSTRUCTION_DONE = 9;
 
-    // Key names received from the BluetoothChatService Handler
-    String DEVICE_NAME = "device_name";
-    String TOAST = "toast";
-
     String HEADER_TASK = "T";
     String HEADER_LOCATION = "L";
     String HEADER_BUTTON = "B";
