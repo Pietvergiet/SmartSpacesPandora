@@ -6,7 +6,7 @@ public class Player {
     private int id;
     private boolean hasMap;
     private Task displayTask;
-    private Panel panels[];
+    private Panel[] panels;
 
     public Player(int number, boolean mapPlayer, Panel[] panels) {
         id = number;

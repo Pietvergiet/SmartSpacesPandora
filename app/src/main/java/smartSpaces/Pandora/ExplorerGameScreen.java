@@ -1,13 +1,19 @@
 package smartSpaces.Pandora;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentTransaction;
 //import androidx.recyclerview.widget.GridLayoutManager;
 //import androidx.recyclerview.widget.RecyclerView;
 
+import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Handler;
+import android.os.Message;
 import android.text.InputFilter;
 import android.util.Log;
 import android.view.View;
@@ -30,13 +36,23 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import smartSpaces.Pandora.Game.GameClient;
 import smartSpaces.Pandora.Game.Panel;
+import smartSpaces.Pandora.Game.Player;
+import smartSpaces.Pandora.P2P.BluetoothService;
+import smartSpaces.Pandora.P2P.BluetoothServiceFragment;
+import smartSpaces.Pandora.P2P.Constants;
 import smartSpaces.Pandora.Picklock.R;
 
 public class ExplorerGameScreen extends AppCompatActivity {
 
-    public ArrayList<Panel> panels = new ArrayList<>();
+    // controller stuff
+    private GameClient game;
+    BluetoothServiceFragment fragment;
+    private Player player;
+    Context view;
 
+    // UI stuff
     public long TASKTIME = 30 * 1000;
     public long TASKTIME_INTERVAL = 100;
     public long N_PANELS = 4;
@@ -50,6 +66,16 @@ public class ExplorerGameScreen extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_explorer_game_screen);
 
+        // controller stuff: ===================================
+        this.game = new GameClient();
+        this.player = new Player(false);
+
+        FragmentTransaction transaction = this.getSupportFragmentManager().beginTransaction();
+        fragment = new BluetoothServiceFragment(false, clientHandler, view);
+        transaction.add(android.R.id.content, fragment);
+        transaction.commit();
+
+        // UI stuff: ===========================================
         // set visibilities of elements
         ProgressBar spinner = findViewById(R.id.spinner);
         spinner.setVisibility(View.GONE);
@@ -57,19 +83,72 @@ public class ExplorerGameScreen extends AppCompatActivity {
         // initiate fonts
         this.pixelFont = Typeface.createFromAsset(getAssets(), "Fipps-Regular.otf");
         this.horrorFont = Typeface.createFromAsset(getAssets(), "buried-before.before-bb.ttf");
-
         TextView task = findViewById(R.id.task);
-
         task.setTypeface(pixelFont);
 
         // initiate panels
-        fillPanels();
+//        try {
+//            initiateGame();
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+    }
 
-        try {
-            initiateGame();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+    @SuppressLint("HandlerLeak")
+    private final Handler clientHandler = new Handler() {
+
+        @Override
+        public void handleMessage(Message msg) {
+        switch (msg.what) {
+            case Constants.MESSAGE_READ:
+                readMessage((String) msg.obj);
+
+                break;
+            case Constants.LOCATION_FOUND:
+
+                break;
+            case Constants.ACTIVITY_RECOGNIZED:
+
+                break;
         }
+        }
+    };
+
+    private void readMessage(String msg) {
+        String[] splittedMesssage = msg.split(Constants.MESSAGE_SEPARATOR);
+        switch (splittedMesssage[0]) {
+            case Constants.HEADER_TASK:
+                handleReceiveTask(splittedMesssage);
+                break;
+            case Constants.HEADER_LOCATION:
+
+                break;
+            case Constants.HEADER_BUTTON:
+                handleReceiveButtons(splittedMesssage);
+                break;
+        }
+    }
+
+    public void handleReceiveTask(String[] msg) {
+        String task = msg[1];
+        setTask(task);
+    }
+
+    public void handleReceiveButtons(String[] msg) {
+        String btnAmount = msg[1];
+        Panel[] panels = new Panel[Integer.parseInt(btnAmount)];
+        String list = msg[2];
+        String[] listElement = list.split(Constants.MESSAGE_LIST_SEPARATOR);
+        for (int i = 0; i < listElement.length; i ++) {
+            String[] elementItems = listElement[i].split(Constants.MESSAGE_LIST_ELEMENT_SEPARATOR);
+            String buttonId = elementItems[0];
+            String verb = elementItems[1];
+            String object = elementItems[2];
+            Panel panel = new Panel(Integer.parseInt(buttonId), verb, object);
+            panels[i] = panel;
+        }
+        player.setPanels(panels);
+        fillPanels(player.getPanels());
     }
 
 
@@ -194,7 +273,7 @@ public class ExplorerGameScreen extends AppCompatActivity {
     /**
      * Creates the panels and adds them to the UI
      */
-    public void fillPanels() {
+    public void fillPanels(Panel[] panels) {
         Button btn1 = findViewById(R.id.button1);
         Button btn2 = findViewById(R.id.button2);
         Button btn3 = findViewById(R.id.button3);
@@ -205,33 +284,17 @@ public class ExplorerGameScreen extends AppCompatActivity {
         TextView desc3 = findViewById(R.id.description3);
         TextView desc4 = findViewById(R.id.description4);
 
-        // create panels
-        Set<String> usedVerbs = new HashSet<>();
-        Set<String> usedObjects = new HashSet<>();
-        for (int i = 0; i < N_PANELS; i++) {
-            Panel newPanel = new Panel(i);
-
-            // check whether object or verb is already used
-            while (usedVerbs.contains(newPanel.getVerb()) || usedObjects.contains(newPanel.getObject())) {
-                newPanel = new Panel(i);
-            }
-
-            usedVerbs.add(newPanel.getVerb());
-            usedObjects.add(newPanel.getObject());
-            panels.add(newPanel);
-        }
-
         // set button texts
-        btn1.setText(panels.get(0).getVerb());
-        btn2.setText(panels.get(1).getVerb());
-        btn3.setText(panels.get(2).getVerb());
-        btn4.setText(panels.get(3).getVerb());
+        btn1.setText(panels[0].getVerb());
+        btn2.setText(panels[1].getVerb());
+        btn3.setText(panels[2].getVerb());
+        btn4.setText(panels[3].getVerb());
 
         // set description
-        desc1.setText(panels.get(0).getObject());
-        desc2.setText(panels.get(1).getObject());
-        desc3.setText(panels.get(2).getObject());
-        desc4.setText(panels.get(3).getObject());
+        desc1.setText(panels[0].getObject());
+        desc2.setText(panels[1].getObject());
+        desc3.setText(panels[2].getObject());
+        desc4.setText(panels[3].getObject());
 
         // set fonts
         btn1.setTypeface(horrorFont);

@@ -59,10 +59,10 @@ public class MainActivity extends AppCompatActivity {
         GameClient newGame = new GameClient();
         CoordinatorGameScreen newCoordinatoGameScreen = new CoordinatorGameScreen();
 //        startBluetooth(false);
-        cController = new ClientGameController(newGame, this);
-//        Intent intent = new Intent(this, InstructionScreen.class);
-//        intent.putExtra("role", EXPLORER_ROLE);
-//        startActivity(intent);
+//        cController = new ClientGameController(newGame, this);
+        Intent intent = new Intent(this, InstructionScreen.class);
+        intent.putExtra("role", EXPLORER_ROLE);
+        startActivity(intent);
     }
 
     private void startBluetooth(boolean isHost) {
