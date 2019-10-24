@@ -54,6 +54,7 @@ public class ExplorerGameScreen extends AppCompatActivity {
     private Player player;
     Context view;
     private Boolean gameStarted = false;
+    public Boolean panelsFilled = false;
 
     // UI stuff
     public long TASKTIME = 30 * 1000;
@@ -69,7 +70,7 @@ public class ExplorerGameScreen extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_explorer_game_screen);
+        setContentView(R.layout.explorer_wait_screen);
 
         // controller stuff: ===================================
         this.game = new GameClient();
@@ -79,17 +80,6 @@ public class ExplorerGameScreen extends AppCompatActivity {
         fragment = new BluetoothServiceFragment(false, clientHandler, view);
         transaction.add(android.R.id.content, fragment);
         transaction.commit();
-
-        // UI stuff: ===========================================
-        // set visibilities of elements
-        ProgressBar spinner = findViewById(R.id.spinner);
-        spinner.setVisibility(View.GONE);
-
-        // initiate fonts
-        this.pixelFont = Typeface.createFromAsset(getAssets(), "Fipps-Regular.otf");
-        this.horrorFont = Typeface.createFromAsset(getAssets(), "buried-before.before-bb.ttf");
-        TextView task = findViewById(R.id.task);
-        task.setTypeface(pixelFont);
     }
 
     @SuppressLint("HandlerLeak")
@@ -101,15 +91,22 @@ public class ExplorerGameScreen extends AppCompatActivity {
             case Constants.MESSAGE_READ:
                 readMessage((String) msg.obj);
                 break;
-            case Constants.LOCATION_FOUND:
-
-                break;
+//            case Constants.LOCATION_FOUND:
+//                locationFound((String) msg.obj);
+//
+//                break;
             case Constants.ACTIVITY_RECOGNIZED:
 
                 break;
         }
         }
     };
+
+//    private void locationFound(String msg) {
+//        // TODO: convert msg to Location
+//        String[] splittedMessage = msg.split(Constants.MESSAGE_SEPARATOR);
+//        String location = splittedMessage[1];
+//    }
 
     private void readMessage(String msg) {
         String[] splittedMesssage = msg.split(Constants.MESSAGE_SEPARATOR);
@@ -173,22 +170,25 @@ public class ExplorerGameScreen extends AppCompatActivity {
             panels[i] = panel;
         }
         player.setPanels(panels);
-        fillPanels(player.getPanels());
+        if (gameStarted) {
+            fillPanels(player.getPanels());
+            panelsFilled = true;
+        }
     }
 
 
     public void startGame() {
-        // add spinner
-        ProgressBar spinner = findViewById(R.id.spinner);
-        TextView wait = findViewById(R.id.wait_start_game);
+        setContentView(R.layout.activity_explorer_game_screen);
 
-        // set visibilities
-        spinner.setVisibility(View.VISIBLE);
-        wait.setVisibility(View.VISIBLE);
+        // initiate fonts
+        this.pixelFont = Typeface.createFromAsset(getAssets(), "Fipps-Regular.otf");
+        this.horrorFont = Typeface.createFromAsset(getAssets(), "buried-before.before-bb.ttf");
+        TextView taskText = findViewById(R.id.task);
+        taskText.setTypeface(pixelFont);
 
-        //remove view, remove spinner, start game
-        RelativeLayout modal = findViewById(R.id.modal_start);
-        modal.setVisibility(View.GONE);
+        if (player.getPanels().length > 0) {
+            fillPanels(player.getPanels());
+        }
 
         gameStarted = true;
         if (task != null) {

@@ -157,10 +157,8 @@ public class BluetoothServiceFragment extends Fragment {
         // Get the BluetoothDevice object
         BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
 
-        ((Activity) curContext).findViewById(R.id.modal_client_start).setVisibility(View.VISIBLE);
-        TextView tekst = ((Activity) curContext).findViewById(R.id.isConnected);
+
         int counter = 0;
-        tekst.setText("Connecting to host");
         mBluetoothAdapter.cancelDiscovery();
         myBluetoothService.join(device);
         while (!myBluetoothService.isClientConnected()) {
@@ -169,7 +167,6 @@ public class BluetoothServiceFragment extends Fragment {
             }
 
         }
-        tekst.setText("Connected to: " + myBluetoothService.getHostName());
     }
 
     /**

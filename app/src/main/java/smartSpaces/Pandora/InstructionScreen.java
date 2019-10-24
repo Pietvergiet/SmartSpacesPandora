@@ -173,6 +173,7 @@ public class InstructionScreen extends AppCompatActivity {
             @Override
             public void onAnimationEnd(Animation animation) {
                 text.setVisibility(View.GONE);
+                goToNext();
             }
 
             @Override
@@ -184,8 +185,8 @@ public class InstructionScreen extends AppCompatActivity {
         Log.d(TAG, "continueInstruction: current instruction: " + currentInstruction);
         if (isAnimating) {
             return;
-        } else if (currentInstruction == instructionTexts.size()-1) {
-            goToNext(view);
+        } else if (currentInstruction == instructionTexts.size()-2) {
+            animateFadeOutText(instructionTexts.get(currentInstruction));
         } else {
             animateFadeOutInText(instructionTexts.get(currentInstruction));
 
@@ -194,6 +195,14 @@ public class InstructionScreen extends AppCompatActivity {
     }
 
     public void goToNext(View view) {
+        if (role == COORDINATOR_ROLE){
+            goToCoordinator();
+        } else if (role == EXPLORER_ROLE) {
+            goToExplorer();
+        }
+    }
+
+    public void goToNext() {
         if (role == COORDINATOR_ROLE){
             goToCoordinator();
         } else if (role == EXPLORER_ROLE) {
@@ -211,5 +220,6 @@ public class InstructionScreen extends AppCompatActivity {
     public void goToExplorer() {
         Intent intent = new Intent(this, ExplorerGameScreen.class);
         startActivity(intent);
+        finish();
     }
 }
