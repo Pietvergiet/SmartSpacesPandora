@@ -15,9 +15,20 @@ public interface Constants {
 
     int INSTRUCTION_DONE = 9;
 
+    String TASK_FLAG = "Raise a flag";
+    String TASK_SAFE = "Open a safe";
+
+    String PRESSED = "Pressed";
+    String RELEASED = "Released";
+
+    String WIN = "win";
+    String LOSE = "lose";
+
     String HEADER_TASK = "T";
     String HEADER_LOCATION = "L";
     String HEADER_BUTTON = "B";
+    String HEADER_START = "S";
+    String HEADER_END = "E";
 
     String MESSAGE_SEPARATOR = "-";
     String MESSAGE_LIST_START = "[";

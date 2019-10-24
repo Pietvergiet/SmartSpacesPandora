@@ -12,10 +12,10 @@
         android:layout_height="300dp"
         android:background="#000" >
         <pl.droidsonroids.gif.GifImageView
+            android:id="@+id/animation"
             android:layout_centerHorizontal="true"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:src="@drawable/safeanimation"
             />
     </RelativeLayout>
 
@@ -102,7 +102,6 @@
                         android:textColor="@color/white"
                         android:textSize="25dp"
                         android:tag="0"
-                        android:onClick="panelButtonClicked"
                         android:text="" />
                 </RelativeLayout>
 
@@ -132,7 +131,6 @@
                         android:textColor="@color/white"
                         android:textSize="25dp"
                         android:tag="1"
-                        android:onClick="panelButtonClicked"
                         android:text="" />
                 </RelativeLayout>
             </LinearLayout>
@@ -168,7 +166,6 @@
                         android:textColor="@color/white"
                         android:textSize="25dp"
                         android:tag="2"
-                        android:onClick="panelButtonClicked"
                         android:text="" />
                 </RelativeLayout>
 
@@ -198,7 +195,6 @@
                         android:textColor="@color/white"
                         android:textSize="25dp"
                         android:tag="3"
-                        android:onClick="panelButtonClicked"
                         android:text="" />
                 </RelativeLayout>
             </LinearLayout>

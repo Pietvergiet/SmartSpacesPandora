@@ -16,6 +16,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.text.InputFilter;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -36,6 +37,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import pl.droidsonroids.gif.GifImageView;
 import smartSpaces.Pandora.Game.GameClient;
 import smartSpaces.Pandora.Game.Panel;
 import smartSpaces.Pandora.Game.Player;
@@ -51,6 +53,7 @@ public class ExplorerGameScreen extends AppCompatActivity {
     BluetoothServiceFragment fragment;
     private Player player;
     Context view;
+    private Boolean gameStarted = false;
 
     // UI stuff
     public long TASKTIME = 30 * 1000;
@@ -58,6 +61,8 @@ public class ExplorerGameScreen extends AppCompatActivity {
     public long N_PANELS = 4;
     private int EXPLORER_ROLE = 1;
     public String TAG = "Explorer: ";
+    public String task;
+    public Boolean hasTask = false;
     public Typeface horrorFont;
     public Typeface pixelFont;
 
@@ -85,13 +90,6 @@ public class ExplorerGameScreen extends AppCompatActivity {
         this.horrorFont = Typeface.createFromAsset(getAssets(), "buried-before.before-bb.ttf");
         TextView task = findViewById(R.id.task);
         task.setTypeface(pixelFont);
-
-        // initiate panels
-//        try {
-//            initiateGame();
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
     }
 
     @SuppressLint("HandlerLeak")
@@ -102,7 +100,6 @@ public class ExplorerGameScreen extends AppCompatActivity {
         switch (msg.what) {
             case Constants.MESSAGE_READ:
                 readMessage((String) msg.obj);
-
                 break;
             case Constants.LOCATION_FOUND:
 
@@ -121,17 +118,45 @@ public class ExplorerGameScreen extends AppCompatActivity {
                 handleReceiveTask(splittedMesssage);
                 break;
             case Constants.HEADER_LOCATION:
-
+                handleReceiveLocation(splittedMesssage);
                 break;
             case Constants.HEADER_BUTTON:
                 handleReceiveButtons(splittedMesssage);
                 break;
+            case Constants.HEADER_START:
+                startGame();
+                break;
+            case Constants.HEADER_END:
+                handleReceiveGameEnd(splittedMesssage);
+                break;
         }
     }
 
+    public void handleReceiveGameEnd(String[] msg) {
+        String result = msg[1];
+        if (result.equals(Constants.WIN)) {
+            goToWin();
+        } else if (result.equals(Constants.LOSE)) {
+            goToLost();
+        }
+    }
+
+    public void handleReceiveLocation(String[] msg) {
+        //TODO: START ACTIVITY RECOGNITION
+    }
+
     public void handleReceiveTask(String[] msg) {
-        String task = msg[1];
-        setTask(task);
+        String newTask = msg[1];
+
+        if (hasTask) {
+            taskCompleted();
+        }
+
+        if (gameStarted) {
+            setTask(newTask);
+        } else {
+            task = newTask;
+        }
     }
 
     public void handleReceiveButtons(String[] msg) {
@@ -152,7 +177,7 @@ public class ExplorerGameScreen extends AppCompatActivity {
     }
 
 
-    public void initiateGame() throws InterruptedException{
+    public void startGame() {
         // add spinner
         ProgressBar spinner = findViewById(R.id.spinner);
         TextView wait = findViewById(R.id.wait_start_game);
@@ -161,28 +186,14 @@ public class ExplorerGameScreen extends AppCompatActivity {
         spinner.setVisibility(View.VISIBLE);
         wait.setVisibility(View.VISIBLE);
 
-        // find roomcode and join game
-        Boolean joined = joinGame();
+        //remove view, remove spinner, start game
+        RelativeLayout modal = findViewById(R.id.modal_start);
+        modal.setVisibility(View.GONE);
 
-        if (joined) {
-            //remove view, remove spinner, start game
-            RelativeLayout modal = findViewById(R.id.modal_start);
-            modal.setVisibility(View.GONE);
-
-            //TODO: START GAME AND SET TASK
-            setTask("Open the safe");
-        } else {
-            // show error
+        gameStarted = true;
+        if (task != null) {
+            setTask(task);
         }
-    }
-
-    /**
-     *  //TODO: Function that implements the joining of a game.
-     * @return boolean if joining game worked or failed.
-     * @throws InterruptedException
-     */
-    public boolean joinGame() throws InterruptedException {
-        return true;
     }
 
     /**
@@ -190,9 +201,18 @@ public class ExplorerGameScreen extends AppCompatActivity {
      * @param task
      */
     public void setTask(String task) {
+        hasTask = true;
         TextView taskView = findViewById(R.id.task);
         final ProgressBar progressBar = findViewById(R.id.progressBar);
         taskView.setText(task);
+
+        if (task.equals(Constants.TASK_FLAG)) {
+            GifImageView animation = findViewById(R.id.animation);
+            animation.setImageResource(R.drawable.flaganimation);
+        } else if (task.equals(Constants.TASK_SAFE)) {
+            GifImageView animation = findViewById(R.id.animation);
+            animation.setImageResource(R.drawable.safeanimation);
+        }
 
         CountDownTimer taskTimer = new CountDownTimer(TASKTIME, TASKTIME_INTERVAL) {
 
@@ -211,11 +231,10 @@ public class ExplorerGameScreen extends AppCompatActivity {
             @Override
             public void onFinish() {
                 Log.d(TAG, "onFinish: TIME OUT! TASK FAILED...");
-
-//                taskCompleted();
-//                taskFailed();
-//                setTask("Do a pirouette");
-//                goToWin();
+                String msg = Constants.HEADER_TASK + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + "Failed";
+                fragment.sendMessage(msg);
+                taskFailed();
+                hasTask = false;
             }
         };
 
@@ -273,7 +292,8 @@ public class ExplorerGameScreen extends AppCompatActivity {
     /**
      * Creates the panels and adds them to the UI
      */
-    public void fillPanels(Panel[] panels) {
+    @SuppressLint("ClickableViewAccessibility")
+    public void fillPanels(final Panel[] panels) {
         Button btn1 = findViewById(R.id.button1);
         Button btn2 = findViewById(R.id.button2);
         Button btn3 = findViewById(R.id.button3);
@@ -301,14 +321,62 @@ public class ExplorerGameScreen extends AppCompatActivity {
         btn2.setTypeface(horrorFont);
         btn3.setTypeface(horrorFont);
         btn4.setTypeface(horrorFont);
-    }
 
-    /**
-     * //TODO: handles when a panel button is clicked. (v.getTag is the ID of the panel)
-     * @param v
-     */
-    public void panelButtonClicked(View v) {
-        Log.d(TAG, "panelButtonClicked: id: " + v.getTag() + ", text: ");
+        btn1.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                if (motionEvent.getAction() == MotionEvent.ACTION_BUTTON_PRESS) {
+                    String msg = Constants.HEADER_BUTTON + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + panels[0].getId() + Constants.MESSAGE_SEPARATOR + Constants.PRESSED;
+                    fragment.sendMessage(msg);
+                } else if (motionEvent.getAction() == MotionEvent.ACTION_BUTTON_RELEASE) {
+                    String msg = Constants.HEADER_BUTTON + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + panels[0].getId() + Constants.MESSAGE_SEPARATOR + Constants.RELEASED;
+                    fragment.sendMessage(msg);
+                }
+                return false;
+            }
+        });
+
+        btn2.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                if (motionEvent.getAction() == MotionEvent.ACTION_BUTTON_PRESS) {
+                    String msg = Constants.HEADER_BUTTON + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + panels[1].getId() + Constants.MESSAGE_SEPARATOR + Constants.PRESSED;
+                    fragment.sendMessage(msg);
+                } else if (motionEvent.getAction() == MotionEvent.ACTION_BUTTON_RELEASE) {
+                    String msg = Constants.HEADER_BUTTON + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + panels[1].getId() + Constants.MESSAGE_SEPARATOR + Constants.RELEASED;
+                    fragment.sendMessage(msg);
+                }
+                return false;
+            }
+        });
+
+        btn3.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                if (motionEvent.getAction() == MotionEvent.ACTION_BUTTON_PRESS) {
+                    String msg = Constants.HEADER_BUTTON + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + panels[2].getId() + Constants.MESSAGE_SEPARATOR + Constants.PRESSED;
+                    fragment.sendMessage(msg);
+                } else if (motionEvent.getAction() == MotionEvent.ACTION_BUTTON_RELEASE) {
+                    String msg = Constants.HEADER_BUTTON + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + panels[2].getId() + Constants.MESSAGE_SEPARATOR + Constants.RELEASED;
+                    fragment.sendMessage(msg);
+                }
+                return false;
+            }
+        });
+
+        btn4.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                if (motionEvent.getAction() == MotionEvent.ACTION_BUTTON_PRESS) {
+                    String msg = Constants.HEADER_BUTTON + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + panels[3].getId() + Constants.MESSAGE_SEPARATOR + Constants.PRESSED;
+                    fragment.sendMessage(msg);
+                } else if (motionEvent.getAction() == MotionEvent.ACTION_BUTTON_RELEASE) {
+                    String msg = Constants.HEADER_BUTTON + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + panels[3].getId() + Constants.MESSAGE_SEPARATOR + Constants.RELEASED;
+                    fragment.sendMessage(msg);
+                }
+                return false;
+            }
+        });
     }
 
     public void goToWin() {
