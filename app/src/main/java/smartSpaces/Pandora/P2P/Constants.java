@@ -15,13 +15,19 @@ public interface Constants {
 
     int INSTRUCTION_DONE = 9;
 
+    String WIN = "win";
+    String LOSE = "lose";
+
     String HEADER_TASK = "T";
     String HEADER_LOCATION = "L";
     String HEADER_BUTTON = "B";
+    String HEADER_START = "S";
+    String HEADER_END = "E";
 
     String MESSAGE_SEPARATOR = "-";
     String MESSAGE_LIST_START = "[";
     String MESSAGE_LIST_SEPARATOR = ",";
+    String MESSAGE_LIST_ELEMENT_SEPARATOR = "+";
     String MESSAGE_LIST_END = "]";
     String TOAST = "toast";
 }

@@ -19,8 +19,22 @@ public class Panel {
         this.object = getRandomObject();
     }
 
+    public Panel(int id, String verb, String object) {
+        this.id = id;
+        this.verb = verb;
+        this.object = object;
+    }
+
     public int getId() {
         return this.id;
+    }
+
+    public String[] getOBJECTS() {
+        return OBJECTS;
+    }
+
+    public String[] getVERBS() {
+        return VERBS;
     }
 
     public String getVerb() {

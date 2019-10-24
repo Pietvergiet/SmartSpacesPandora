@@ -34,9 +34,20 @@ public class GameHost {
         playerAmount = amount;
     }
 
+    public int getPlayerAmount() {
+        return playerAmount;
+    }
+
+    public ArrayList<Player> getPlayerList() {
+        return playerList;
+    }
+
+    public int getTotalPanelAmount(){
+        return playerList.size() * panelsPerPlayer;
+    }
+
     public void addPlayer(Player player){
         playerList.add(player);
-        fillPanels();
     }
 
     public void removePlayer(Player player){
@@ -67,8 +78,12 @@ public class GameHost {
         this.panels = panels;
     }
 
-    public void addPanel(Panel panel){
-        panels.add(panel);
+    public boolean addPanel(Panel panel){
+        if (getTotalPanelAmount() <= panels.size()){
+            panels.add(panel);
+            return true;
+        }
+        return false;
     }
 
     public boolean isSetup() {
