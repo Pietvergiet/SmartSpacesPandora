@@ -231,7 +231,7 @@ public class ExplorerGameScreen extends AppCompatActivity {
             @Override
             public void onFinish() {
                 Log.d(TAG, "onFinish: TIME OUT! TASK FAILED...");
-                String msg = Constants.HEADER_TASK + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + "Failed";
+                String msg = Constants.HEADER_TASK + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + Constants.TASK_FAILED;
                 fragment.sendMessage(msg);
                 taskFailed();
                 hasTask = false;
