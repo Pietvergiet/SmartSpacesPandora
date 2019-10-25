@@ -7,9 +7,13 @@ import androidx.fragment.app.FragmentTransaction;
 //import androidx.recyclerview.widget.RecyclerView;
 
 import android.annotation.SuppressLint;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Typeface;
+import android.nfc.NfcAdapter;
+import android.nfc.Tag;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -28,6 +32,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.w3c.dom.Text;
 
@@ -66,11 +71,29 @@ public class ExplorerGameScreen extends AppCompatActivity {
     public Boolean hasTask = false;
     public Typeface horrorFont;
     public Typeface pixelFont;
+    NfcAdapter nfcAdapter;
+    PendingIntent pendingIntent;
+    IntentFilter writeTagFilters[];
+    Context context;
+    public String coords = "";
+    NFCReader reader = new NFCReader();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.explorer_wait_screen);
+
+        //NFC stuff
+        context = this;
+        nfcAdapter = NfcAdapter.getDefaultAdapter(this);
+        if (nfcAdapter == null) {
+            // Stop here, we definitely need NFC
+            Toast.makeText(this, "This device doesn't support NFC.", Toast.LENGTH_LONG).show();
+            finish();
+        }
+        pendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
+        IntentFilter tagDetected = new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED);
+        tagDetected.addCategory(Intent.CATEGORY_DEFAULT);
 
         // controller stuff: ===================================
         this.game = new GameClient();
@@ -80,6 +103,19 @@ public class ExplorerGameScreen extends AppCompatActivity {
         fragment = new BluetoothServiceFragment(false, clientHandler, view);
         transaction.add(android.R.id.content, fragment);
         transaction.commit();
+        Log.d(TAG, "onNewIntent: Create");
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        //super.onNewIntent(intent);
+        Log.d(TAG, "onNewIntent: " + intent.getAction());
+        if(NfcAdapter.ACTION_NDEF_DISCOVERED.equals(intent.getAction())) {
+            coords = reader.readFromIntent(intent);
+            String message = Constants.HEADER_LOCATION + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + coords;
+            Log.d(TAG, "onNewIntent: " + message);
+            fragment.sendMessage(message);
+        }
     }
 
     @SuppressLint("HandlerLeak")
@@ -207,11 +243,11 @@ public class ExplorerGameScreen extends AppCompatActivity {
         taskView.setText(task);
 
         if (task.equals(Constants.TASK_FLAG)) {
-            GifImageView animation = findViewById(R.id.animation);
-            animation.setImageResource(R.drawable.flaganimation);
+            //GifImageView animation = findViewById(R.id.animation);
+            //animation.setImageResource(R.drawable.flaganimation);
         } else if (task.equals(Constants.TASK_SAFE)) {
-            GifImageView animation = findViewById(R.id.animation);
-            animation.setImageResource(R.drawable.safeanimation);
+            //GifImageView animation = findViewById(R.id.animation);
+            //animation.setImageResource(R.drawable.safeanimation);
         }
 
         CountDownTimer taskTimer = new CountDownTimer(TASKTIME, TASKTIME_INTERVAL) {
@@ -389,5 +425,19 @@ public class ExplorerGameScreen extends AppCompatActivity {
         Intent intent = new Intent(this, LostScreen.class);
         intent.putExtra("role", EXPLORER_ROLE);
         startActivity(intent);
+    }
+
+    @Override
+    public void onPause(){
+        super.onPause();
+        if (nfcAdapter!=null) {
+            nfcAdapter.disableForegroundDispatch(this);
+        }
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        nfcAdapter.enableForegroundDispatch(this, pendingIntent, null, null);
     }
 }
