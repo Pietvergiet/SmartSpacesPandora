@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 import smartSpaces.Pandora.Game.Panel;
 import smartSpaces.Pandora.Picklock.R;
 
-public class ExplorerGameScreen extends AppCompatActivity {
+public class ExplorerGameScreen extends AppCompatActivity{
 
     public ArrayList<Panel> panels = new ArrayList<>();
 
