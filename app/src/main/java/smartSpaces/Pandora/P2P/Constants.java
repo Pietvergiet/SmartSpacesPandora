@@ -18,6 +18,8 @@ public interface Constants {
     String TASK_FLAG = "Raise a flag";
     String TASK_SAFE = "Open a safe";
 
+    String TASK_FAILED = "Failed";
+
     String PRESSED = "Pressed";
     String RELEASED = "Released";
 
