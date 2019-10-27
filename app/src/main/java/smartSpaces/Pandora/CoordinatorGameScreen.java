@@ -1,7 +1,6 @@
 package smartSpaces.Pandora;
 
-import androidx.appcompat.app.AppCompatActivity;
-
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -13,7 +12,11 @@ import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Handler;
+import android.os.Message;
+import android.text.TextUtils;
 import android.util.Log;
+import android.util.SparseArray;
 import android.view.Display;
 import android.view.View;
 import android.view.animation.Animation;
@@ -23,13 +26,51 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import java.io.IOException;
-import java.util.ArrayList;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentTransaction;
 
+import java.io.IOException;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+
+import smartSpaces.Pandora.Game.GameHost;
+import smartSpaces.Pandora.Game.Map.GameMap;
+import smartSpaces.Pandora.Game.Map.MapObject;
+import smartSpaces.Pandora.Game.Map.ObjectType;
+import smartSpaces.Pandora.Game.Panel;
+import smartSpaces.Pandora.Game.Player;
+import smartSpaces.Pandora.Game.Tasks.LocationTask;
+import smartSpaces.Pandora.Game.Tasks.MotionActivityType;
+import smartSpaces.Pandora.Game.Tasks.MotionTask;
+import smartSpaces.Pandora.Game.Tasks.PanelTask;
+import smartSpaces.Pandora.Game.Tasks.Task;
+import smartSpaces.Pandora.Game.Tasks.TaskType;
+import smartSpaces.Pandora.P2P.BluetoothServiceFragment;
+import smartSpaces.Pandora.P2P.Constants;
 import smartSpaces.Pandora.Picklock.R;
 
 public class CoordinatorGameScreen extends AppCompatActivity {
+    //Todo appropriate loggin for each method
+    //todo javadocs
+    //region Game variables
+    private final int HOSTPLAYERID = -1;
+    private final int MAPDIM = 5;
+    private BluetoothServiceFragment bServiceFragment;
+    private GameHost game;
+    private GameMap gameMap;
+    private ArrayList<Panel> panels;
+    private Set<Integer> playerIds;
 
+    //endregion
+
+    //region View variables
     private long GAMETIME = 10 * 60 * 1000;
     private long TASKTIME = 30 * 1000;
     private long GAMETIME_INTERVAL = 1000;
@@ -41,12 +82,33 @@ public class CoordinatorGameScreen extends AppCompatActivity {
     private int screenWidth;
     Bitmap scaledbm;
     private ArrayList<Location> hiddenMapBlocks;
+    CountDownTimer timer;
+    //endregion
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_coordinator_game_screen);
+        game = new GameHost(30, 4);
 
+        bServiceFragment = new BluetoothServiceFragment(true, hostHandler, this);
+        startBluetooth();
+
+
+        game.addPlayer(new Player(HOSTPLAYERID, true));
+
+        setUp();
+    }
+
+    //region Starters
+    private void startBluetooth() {
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+
+        transaction.add(android.R.id.content, bServiceFragment);
+        transaction.commit();
+    }
+
+    private void setUp(){
         // setting typefaces (ugly but cannot be done in XML :/
         TextView task = findViewById(R.id.task);
         TextView start = findViewById(R.id.btn_start);
@@ -65,7 +127,6 @@ public class CoordinatorGameScreen extends AppCompatActivity {
         Log.e("Width", "" + screenWidth);
 
         // initializing map
-        hiddenMapBlocks = new ArrayList<>();
         try {
             bm = BitmapFactory.decodeStream(this.getApplicationContext().getAssets().open("map.png"));
             scaledbm = bm.createScaledBitmap(bm, screenWidth, screenWidth, false);
@@ -78,12 +139,12 @@ public class CoordinatorGameScreen extends AppCompatActivity {
         Log.d(TAG, "onCreate: Map filled");
 
         // hide map
-        hideMap(0, 0);
-        hideMap(0, 1);
+//        hideMap(0, 0);
+//        hideMap(0, 1);
 //        hideMap(0, 2);
 //        hideMap(0, 3);
 //        hideMap(0, 4);
-        hideMap(1, 0);
+//        hideMap(1, 0);
 //        hideMap(1, 1);
 //        hideMap(1, 2);
 //        hideMap(1, 3);
@@ -102,25 +163,39 @@ public class CoordinatorGameScreen extends AppCompatActivity {
 //        hideMap(4, 1);
 //        hideMap(4, 2);
 //        hideMap(4, 3);
-        hideMap(4, 4);
+//        hideMap(4, 4);
 //
 //        showMap(3,4);
 //        showMap(1,1);
 
-        drawObjectOnMap(R.drawable.flag, new Location(3,3));
-        drawObjectOnMap(R.drawable.safe, new Location(1,2));
-        drawObjectOnMap(R.drawable.bomb, new Location(0,4));
+//        drawObjectOnMap(R.drawable.flag, new Location(3,3));
+//        drawObjectOnMap(R.drawable.safe, new Location(1,2));
+//        drawObjectOnMap(R.drawable.bomb, new Location(0,4));
     }
 
     /**
-     * Starts a game
+     *
+     */
+    public void startGame(){
+        playerIds = bServiceFragment.getClientIds();
+        playerIds.add(HOSTPLAYERID);
+        initMap();
+        initButtons();
+        initPlayers();
+        initTasks();
+    }
+
+    /**
+     * The onClick method that starts the game
      * @param view
      */
-    public void startGame(View view) {
-        RelativeLayout modal = findViewById(R.id.modal_start);
-        modal.setVisibility(view.GONE);
+    public void startView(View view) {
+        startGame();
 
-        CountDownTimer timer = new CountDownTimer(GAMETIME, GAMETIME_INTERVAL) {
+        RelativeLayout modal = findViewById(R.id.modal_start);
+        modal.setVisibility(View.GONE);
+
+        timer = new CountDownTimer(GAMETIME, GAMETIME_INTERVAL) {
             @Override
             public void onTick(long l) {
                 int min = (int) Math.floor((double) Long.valueOf(l / (60*1000)));
@@ -132,14 +207,143 @@ public class CoordinatorGameScreen extends AppCompatActivity {
 
             @Override
             public void onFinish() {
-                // TODO: go to win or loser screen
+                endGame(false);
+                goToLost();
             }
         };
 
         timer.start();
-        setTask("Chase a cart");
+
+        sendGameStart();
+//        setTask("Chase a cart");
+    }
+    //endregion
+
+    //region Initialisers
+    private void initButtons(){
+        panels = new ArrayList<>();
+        int buttonAmount = game.getTotalPanelAmount();
+        Panel tmpPanel = new Panel(-1);
+        ArrayList<String> verbs = new ArrayList<>(Arrays.asList(tmpPanel.getVERBS()));
+        ArrayList<String> objects = new ArrayList<>(Arrays.asList(tmpPanel.getOBJECTS()));
+        Random r = new Random();
+        for (int i = 0; i < buttonAmount; i++) {
+            int vInt = r.nextInt(buttonAmount-i);
+            String verb = verbs.get(vInt);
+            verbs.remove(verb);
+            vInt = r.nextInt(buttonAmount - i);
+            String object = objects.get(vInt);
+            objects.remove(object);
+            panels.add(new Panel(i, verb, object));
+        }
     }
 
+    private void initMap(){
+        gameMap = new GameMap(MAPDIM);
+
+        for (ObjectType ot : ObjectType.values()) {
+            Location rLoc = randomLocation();
+            while (gameMap.getObjectFromLocation(rLoc) != null) {
+                rLoc = randomLocation();
+            }
+            gameMap.addObject(new MapObject(ot), rLoc);
+        }
+    }
+
+    /**
+     * Initialises each {@link Player} and assigns the defined amount of panel to each Player.
+     * This will also be send to each player's Client device.
+     */
+    private void initPlayers() {
+        int startId = 0;
+        for (int id : playerIds) {
+            List<Panel> p = panels.subList(startId, game.getPanelsPerPlayer());
+            game.addPlayer(new Player(id, false, p.toArray(new Panel[0])));
+            sendPlayerPanels(id);
+        }
+    }
+
+    private void initTasks(){
+        for(int id : playerIds) {
+            Task task = randomTaskForPlayer(id);
+            game.getPlayer(id).setTask(task);
+            sendNewTask(id);
+        }
+    }
+
+    //endregion
+
+    //region Randomizers
+    private Task randomTaskForPlayer(int id) {
+        Player player = game.getPlayer(id);
+        TaskType rTask = getRandomTaskType();
+        Random r = new Random();
+        Task task = null;
+        switch (rTask) {
+            case PANEL:
+                ArrayList<Panel> pList = new ArrayList<>(panels);
+                pList.removeAll(Arrays.asList(player.getPanels()));
+                task = new PanelTask(pList.get(r.nextInt(pList.size())));
+                break;
+            case PANEL_CONCURRENT:
+                ArrayList<Panel> list = new ArrayList<>();
+                for (int i : playerIds){
+                    list.add(game.getPlayer(i).getPanels()[r.nextInt(game.getPanelsPerPlayer())]);
+                }
+                task = new PanelTask(list);
+                break;
+            case MOTION:
+                task = new MotionTask(randomMotionActivityType());
+                break;
+            case MOTION_LOCATION:
+                task = new MotionTask(randomMotionActivityType(), randomMapObject());
+                break;
+            case MOTION_CONCURRENT:
+                task = new MotionTask(randomMotionActivityType(), true);
+                break;
+            case LOCATION:
+                task = new LocationTask(randomMapObject());
+                break;
+            case LOCATION_CONCURRENT:
+                HashSet<MapObject> objects = new HashSet<>();
+                int locationAmount = game.getPlayerAmount() > gameMap.getObjects().size() ? gameMap.getObjects().size() : game.getPlayerAmount() -1;
+                while(objects.size() < locationAmount) {
+                    objects.add(randomMapObject());
+                }
+                task =  new LocationTask(new ArrayList<Object>(objects));
+                break;
+        }
+        return task;
+    }
+
+    private MotionActivityType randomMotionActivityType(){
+        Random r = new Random();
+        ArrayList<MapObject> objects = gameMap.getObjects();
+        ArrayList<MotionActivityType> activities = new ArrayList<>();
+        for(MapObject m : objects) {
+            activities.add(m.getObjectType().getMotionActivityType());
+        }
+        return activities.get(r.nextInt(activities.size()));
+    }
+
+    private TaskType getRandomTaskType() {
+        Random r = new Random();
+        return TaskType.values()[r.nextInt(TaskType.values().length)];
+    }
+
+
+    private Location randomLocation() {
+        Random r = new Random();
+        return new Location(r.nextInt(MAPDIM), r.nextInt(MAPDIM));
+    }
+
+    private MapObject randomMapObject() {
+        Random r = new Random();
+        return gameMap.getObjects().get(r.nextInt(gameMap.getObjects().size()));
+    }
+    //endregion
+
+    //region View updaters
     /**
      * Updates the game timer (microwave view)
      * @param min
@@ -287,21 +491,15 @@ public class CoordinatorGameScreen extends AppCompatActivity {
 
     /**
      * Hide a certain block of the map
-     * @param x
-     * @param y
+     * @param location
      */
-    public void hideMap(int x, int y) { // matrix from 0-4 0-4
-        hiddenMapBlocks.add(new Location(x, y));
+    public void hideMap(Location location) { // matrix from 0-4 0-4
+        gameMap.setInvisible(location);
         drawMap();
     }
 
-    public void showMap(int x, int y) {
-        for (int i = 0; i < hiddenMapBlocks.size(); i++ ){
-            if (hiddenMapBlocks.get(i).isLocation(x, y)){
-                hiddenMapBlocks.remove(i);
-                break;
-            }
-        }
+    public void showMap(Location location) {
+        gameMap.setVisible(location);
         drawMap();
     }
 
@@ -321,8 +519,8 @@ public class CoordinatorGameScreen extends AppCompatActivity {
         p.setColor(Color.BLACK);
         tempCanvas.drawBitmap(scaledbm, 0, 0, null);
 
-        for (int i = 0; i < hiddenMapBlocks.size(); i ++) {
-            Location block = hiddenMapBlocks.get(i);
+        for (int i = 0; i < gameMap.getInvisibleList().size(); i ++) {
+            Location block = gameMap.getInvisibleList().get(i);
 
             float left = (float) (block.getX() * stepsize);
             float right = left + stepsize;
@@ -379,4 +577,306 @@ public class CoordinatorGameScreen extends AppCompatActivity {
         intent.putExtra("role", COORDINATOR_ROLE);
         startActivity(intent);
     }
+
+    //endregion
+
+    //region Communication
+    private void sendGameStart() {
+        bServiceFragment.sendMessage(Constants.HEADER_START);
+    }
+
+    private void sendGameEnd(String winOrLose) {
+        bServiceFragment.sendMessage(Constants.HEADER_END + Constants.MESSAGE_SEPARATOR + winOrLose);
+    }
+
+    private void sendNewTask(int playerId){
+        ArrayList<String> message = new ArrayList<>();
+        message.add(Constants.HEADER_TASK);
+        message.add(game.getPlayerTasks().get(game.getPlayer(playerId)).getDescription());
+        String out = TextUtils.join(Constants.MESSAGE_SEPARATOR, message);
+        bServiceFragment.sendMessage(out, playerId);
+    }
+
+    private void sendLocationObject(MapObject object, int playerId) {
+        ArrayList<String> message = new ArrayList<>();
+        message.add(Constants.HEADER_LOCATION);
+        message.add(String.valueOf(object.getResource()));
+        String out = TextUtils.join(Constants.MESSAGE_SEPARATOR, message);
+
+        bServiceFragment.sendMessage(out, playerId);
+    }
+
+    private void sendPlayerPanels(int playerId){
+        ArrayList<String> message = new ArrayList<>();
+        Panel[] panels = game.getPlayer(playerId).getPanels();
+        message.add(Constants.HEADER_BUTTON);
+        message.add(String.valueOf(panels.length));
+
+        ArrayList<String> list = new ArrayList<>();
+        for (Panel p : panels) {
+            list.add(TextUtils.join(Constants.MESSAGE_LIST_ELEMENT_SEPARATOR, new String[]{String.valueOf(p.getId()), p.getVerb(), p.getObject()}));
+        }
+        message.add(
+                TextUtils.join(Constants.MESSAGE_LIST_SEPARATOR, list));
+
+        String out = TextUtils.join(Constants.MESSAGE_SEPARATOR, message);
+
+        bServiceFragment.sendMessage(out, playerId);
+    }
+
+    private void sendHazardTriggered(MapObject hazard, int playerId){
+        ArrayList<String> message = new ArrayList<>();
+        message.add(Constants.HEADER_HAZARD);
+        message.add(String.valueOf(hazard.getResource()));
+
+        String out = TextUtils.join(Constants.MESSAGE_SEPARATOR, message);
+
+        bServiceFragment.sendMessage(out, playerId);
+    }
+    //endregion
+
+    //region GameState alterations
+
+    /**
+     * Sends a new task to specific player.
+     * @param playerId
+     */
+    private void newTask(int playerId){
+        //Set new task for that player
+        Task nTask = randomTaskForPlayer(playerId);
+        game.newTask(game.getPlayer(playerId), nTask);
+        if (game.gameFinished()) {
+            endGame(true);
+        }
+        // Process new task
+        if (playerId == HOSTPLAYERID) {
+            setTask(nTask.getDescription());
+        } else {
+            sendNewTask(playerId);
+        }
+    }
+
+    private void endGame(boolean gameWon){
+        if(gameWon){
+            timer.cancel();
+            sendGameEnd(Constants.WIN);
+            goToWin();
+        } else {
+            sendGameEnd(Constants.LOSE);
+            goToLost();
+        }
+    }
+
+    /**
+     * Checks if the motionActivity is part of a task and finished that task, completes it, and sets a new one.
+     * @param task
+     * @param playerId
+     * @return
+     */
+    private void finishMotionTask(MotionActivityType task, int playerId) {
+        //todo cuncurrent check and concurrent allez
+        HashMap<Player, Task> pTasks = new HashMap<>(game.getPlayerTasks());
+        //Remove task assigned to the player which completed task
+        pTasks.remove(game.getPlayer(playerId));
+        //Find which player the completed task belonged to
+        for (Map.Entry<Player, Task> pt : pTasks.entrySet()) {
+            if (playerId != pt.getKey().getId() &&
+                    pt.getValue() instanceof MotionTask &&
+                    ((MotionTask) pt.getValue()).getMotionType() == task) {
+                game.completeTask();
+                newTask(pt.getKey().getId());
+
+                if (pt.getKey().getId() == HOSTPLAYERID) {
+                    taskCompleted();
+                }
+            }
+        }
+    }
+
+    /**
+     * Checks if the pressed panel completed any tasks and completes it. Otherwise does nothing.
+     * @param p
+     * @param playerId
+     */
+    private void finishButtonTask(Panel p, int playerId){
+//        HashMap<Player, Task> pTasks = new HashMap<>(game.getPlayerTasks());
+        //Loop through all playerTasks
+        for (Map.Entry<Player, Task> pTask : game.getPlayerTasks().entrySet()) {
+            if (pTask.getValue() instanceof PanelTask) {
+                PanelTask task = (PanelTask) pTask.getValue();
+                if (task.isConcurrent()){
+                    // Set panel on pressed.
+                    task.setPressed(p.getId());
+                    if (task.isCompleted()){
+                        game.completeTask();
+                        if (pTask.getKey().getId() == HOSTPLAYERID) {
+                            taskCompleted();
+                        }
+                        newTask(pTask.getKey().getId());
+                    }
+                } else {
+                    // If panel being pressed is the same complete the task
+                    if (p.getId() == task.getTaskPanel().getId()){
+                        game.completeTask();
+                        if (pTask.getKey().getId() == HOSTPLAYERID) {
+                            taskCompleted();
+                        }
+                        newTask(pTask.getKey().getId());
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Sets button of certain task to released
+     * @param p
+     */
+    private void releaseButton(Panel p) {
+        for (Map.Entry<Player, Task> pTask : game.getPlayerTasks().entrySet()) {
+            if (pTask.getValue() instanceof PanelTask) {
+                PanelTask task = (PanelTask) pTask.getValue();
+                if (task.isConcurrent()) {
+                    task.setReleased(p.getId());
+                }
+            }
+        }
+    }
+
+    /**
+     * Check is a locationtask can be finished and completes it, otherwise does nothing.
+     */
+    private void finishLocationTask() {
+        // Loop through all playerTasks
+        for (Map.Entry<Player, Task> pTask : game.getPlayerTasks().entrySet()) {
+            if (pTask.getValue() instanceof LocationTask) {
+                LocationTask lTask = (LocationTask) pTask.getValue();
+                if (lTask.isConcurrent()){
+                    ArrayList<MapObject> objects = lTask.getMapObjects();
+                    boolean finished = true;
+                    // Loop though all location in the locationTask and
+                    // if one of the locations is not in the set with the playerlocations the task is not finished
+                    for (MapObject m : objects) {
+                        if (!gameMap.getPlayerLocations().values().contains(gameMap.getObjectLocation(m))){
+                            finished = false;
+                            break;
+                        }
+                    }
+                    if (finished) {
+                        if(pTask.getKey().getId() == HOSTPLAYERID) {
+                            taskCompleted();
+                        }
+                        newTask(pTask.getKey().getId());
+                    }
+                } else {
+                    if (gameMap.getPlayerLocations().values().contains(gameMap.getObjectLocation(lTask.getMapObject()))){
+                        if(pTask.getKey().getId() == HOSTPLAYERID) {
+                            taskCompleted();
+                        }
+                        newTask(pTask.getKey().getId());
+                    }
+                }
+            }
+        }
+    }
+
+    private void failTask(int playerId) {
+        Task nTask = randomTaskForPlayer(playerId);
+        game.newTask(game.getPlayer(playerId), nTask);
+        if (playerId == HOSTPLAYERID) {
+            taskFailed();
+            setTask(nTask.getDescription());
+        } else {
+            sendNewTask(playerId);
+        }
+    }
+
+    private void locationFound(Location location) {
+        gameMap.setVisible(location);
+        drawMap();
+    }
+
+    private void findLocationObject(Location location, int playerId){
+        MapObject object = gameMap.getObjectFromLocation(location);
+        if(object != null){
+            sendLocationObject(object, playerId);
+        }
+    }
+    //endregion
+
+    private void parseMessage(String message, int playerId) {
+        String[] msgToParse = message.split(Constants.MESSAGE_SEPARATOR);
+        switch (msgToParse[0]){
+            case Constants.HEADER_TASK:
+                String activity = msgToParse[2];
+                if (activity.equals(Constants.TASK_FAILED)) {
+                    failTask(playerId);
+                } else if (Integer.getInteger(activity) != null) {
+                    finishMotionTask(MotionActivityType.valueOf(Integer.getInteger(activity)), playerId);
+                }
+                break;
+            case Constants.HEADER_BUTTON:
+                int buttonId = Integer.getInteger(msgToParse[2]);
+                String buttonPressed = msgToParse[3];
+                for (Panel p : panels) {
+                    if (p.getId() == buttonId){
+                        if (buttonPressed.equals(Constants.PRESSED)) {
+                            finishButtonTask(p, playerId);
+                        } else if (buttonPressed.equals(Constants.RELEASED)){
+                            releaseButton(p);
+                        }
+                    }
+                }
+
+                break;
+            case Constants.HEADER_LOCATION:
+                //todo reset after x time
+                String locationString = msgToParse[2];
+                int x = Character.getNumericValue(locationString.charAt(1));
+                int y = Character.getNumericValue(locationString.charAt(3));
+                if (x >= 0 && y >= 0) {
+                    Location location = new Location(x, y);
+                    // Sets players location on the map
+                    gameMap.setPlayerLocation(location, game.getPlayer(playerId));
+                    // Sets maplocation visible
+                    locationFound(location);
+                    // Sends mapObject to player if there is one
+                    findLocationObject(location, playerId);
+                    // Finishes a locationTask if possible
+                    finishLocationTask();
+                }
+                break;
+            case Constants.HEADER_HAZARD:
+                //todo
+                break;
+        }
+    }
+
+    @SuppressLint("HandlerLeak")
+    private final Handler hostHandler = new Handler() {
+
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case Constants.MESSAGE_READ:
+                    Log.i(TAG, "Message READ: " + msg.obj);
+                    parseMessage((String) msg.obj, msg.arg1);
+                    break;
+                case Constants.LOCATION_FOUND:
+                    //Todo location thingies
+                    break;
+                case Constants.ACTIVITY_RECOGNIZED:
+                    //Todo activity dinges
+                    break;
+                case Constants.NEW_CONNECTION:
+                    Log.i(TAG, "NEW CONNECTION");
+                    //The view mainactivity view is edited to show the amount of joined players
+                    ((TextView)(findViewById(R.id.amount_players))).setText(String.valueOf(msg.obj));
+                    findViewById(R.id.btn_start).setEnabled(true);
+                    //For every new connection a player is added to the game.
+                    game.setPlayerAmount((Integer) msg.obj);
+                    break;
+            }
+        }
+    };
 }

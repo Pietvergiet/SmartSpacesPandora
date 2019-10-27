@@ -29,6 +29,14 @@ public class Panel {
         return this.id;
     }
 
+    public String[] getOBJECTS() {
+        return OBJECTS;
+    }
+
+    public String[] getVERBS() {
+        return VERBS;
+    }
+
     public String getVerb() {
         return this.verb;
     }

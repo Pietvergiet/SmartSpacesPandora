@@ -39,6 +39,7 @@ public interface Constants {
     String HEADER_BUTTON = "B";
     String HEADER_START = "S";
     String HEADER_END = "E";
+    String HEADER_HAZARD = "H";
 
     String MESSAGE_SEPARATOR = "-";
     String MESSAGE_LIST_START = "[";

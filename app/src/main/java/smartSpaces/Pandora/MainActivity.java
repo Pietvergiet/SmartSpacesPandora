@@ -46,13 +46,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void goToInstructionCoordinator(View view) {
-        GameHost newGame = new GameHost(30, 4);
-//        CoordinatorGameScreen newCoordinatorGameScreen = new CoordinatorGameScreen();
-//        startBluetooth(true);
-        hController = new HostGameController(newGame, this);
-//        Intent intent = new Intent(this, InstructionScreen.class);
-//        intent.putExtra("role", COORDINATOR_ROLE);
-//        startActivity(intent);
+//        GameHost newGame = new GameHost(30, 4);
+//        hController = new HostGameController(newGame, this);
+//        hController.startCoordinator();
+        Intent intent = new Intent(this, CoordinatorGameScreen.class);
+        startActivity(intent);
     }
 
     public void goToInstructionExplorer(View view) {
@@ -63,20 +61,13 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, InstructionScreen.class);
         intent.putExtra("role", EXPLORER_ROLE);
         startActivity(intent);
+        cController = new ClientGameController(newGame, this);
     }
 
-    private void startBluetooth(boolean isHost) {
-//        FragmentTransaction transaction = this.getSupportFragmentManager().beginTransaction();
-//        BluetoothServiceFragment fragment = new BluetoothServiceFragment(isHost);
-//        transaction.replace(android.R.id.content, fragment);
-//        transaction.commit();
-    }
-
-    private void startGame(View view){
+    public void startGame(View view){
         if(hController != null) {
-            String amount = ((TextView)this.findViewById(R.id.amount_players)).getText().toString();
-            hController.startGame(Integer.parseInt(amount));
-        } else if (cController != null){
+
+        } else if (cController != null) {
             cController.startGame();
         }
     }

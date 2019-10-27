@@ -7,26 +7,26 @@ import smartSpaces.Pandora.Game.Map.MapObject;
  */
 public class MotionTask extends Task{
 
-    private MotionActivityTypes motionType;
+    private MotionActivityType motionType;
     private MapObject mapObject;
 
     /**
      * Makes a certain type of motion task.
-     * @param motionType The type of {@link MotionActivityTypes}
+     * @param motionType The type of {@link MotionActivityType}
      */
-    public MotionTask(MotionActivityTypes motionType) {
-        super(TaskTypes.MOTION);
+    public MotionTask(MotionActivityType motionType) {
+        super(TaskType.MOTION);
         this.motionType = motionType;
         buildDescription();
     }
 
     /**
      * Makes a certain type of motion task to be executed at a certain {@link MapObject}
-     * @param motionType The {@link MotionActivityTypes}
+     * @param motionType The {@link MotionActivityType}
      * @param object The {@link MapObject}
      */
-    public MotionTask(MotionActivityTypes motionType, MapObject object) {
-        super(TaskTypes.MOTION_LOCATION);
+    public MotionTask(MotionActivityType motionType, MapObject object) {
+        super(TaskType.MOTION_LOCATION);
         this.motionType = motionType;
         mapObject = object;
         buildDescription();
@@ -34,11 +34,11 @@ public class MotionTask extends Task{
 
     /**
      * Makes a certain type of motion task which all player have to execute simultaneously.
-     * @param motionType The type of {@link MotionActivityTypes}
+     * @param motionType The type of {@link MotionActivityType}
      * @param isConcurrent If the task has to be executed by all current players
      */
-    public MotionTask(MotionActivityTypes motionType, boolean isConcurrent) {
-        super((isConcurrent ? TaskTypes.MOTION_CONCURRENT : TaskTypes.MOTION_LOCATION), isConcurrent);
+    public MotionTask(MotionActivityType motionType, boolean isConcurrent) {
+        super((isConcurrent ? TaskType.MOTION_CONCURRENT : TaskType.MOTION_LOCATION), isConcurrent);
         this.motionType = motionType;
     }
 
@@ -54,7 +54,7 @@ public class MotionTask extends Task{
                 break;
             case PIROUETTE:
                 if (isConcurrent()) {
-                    desc = "Let everyone spin round, right round, like a record baby";
+                    desc = "Everyone spin round, right round, like a record baby";
                 } else {
                     desc = "Make one do a Pirouette";
                 }
@@ -72,7 +72,7 @@ public class MotionTask extends Task{
         return mapObject;
     }
 
-    public MotionActivityTypes getMotionType() {
+    public MotionActivityType getMotionType() {
         return motionType;
     }
 }

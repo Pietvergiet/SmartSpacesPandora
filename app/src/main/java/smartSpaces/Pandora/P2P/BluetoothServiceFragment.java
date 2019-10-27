@@ -24,6 +24,7 @@ import androidx.fragment.app.FragmentActivity;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import smartSpaces.Pandora.Game.Tasks.Task;
 import smartSpaces.Pandora.Picklock.R;
@@ -186,6 +187,10 @@ public class BluetoothServiceFragment extends Fragment {
         myBluetoothService.write(message.getBytes(), id);
     }
 
+    public Set<Integer> getClientIds() {
+        return clients.keySet();
+    }
+
     /**
      * Checks if all required permissions are giving and otherwise ask for those permissions.
      */
@@ -224,6 +229,7 @@ public class BluetoothServiceFragment extends Fragment {
                     String clientName = clientId > -1 ? myBluetoothService.getConnectedClients().get(clientId).getName() : myBluetoothService.getHostName();
                     // construct a string from the valid bytes in the buffer
                     String readMessage = new String(readBuf, 0, msg.arg1);
+                    Log.i(TAG, "Read message: " + readMessage);
                     Message readMsg = cHandler.obtainMessage(
                             Constants.MESSAGE_DEVICE_NAME, clientId, -1, readMessage);
                     readMsg.sendToTarget();

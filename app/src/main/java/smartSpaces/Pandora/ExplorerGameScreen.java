@@ -42,7 +42,7 @@ import pl.droidsonroids.gif.GifImageView;
 import smartSpaces.Pandora.Game.Activities.WekaClassifierActivities;
 import smartSpaces.Pandora.Game.Activities.WekaClassifierPicklock;
 import smartSpaces.Pandora.Game.GameClient;
-import smartSpaces.Pandora.Game.Map.ObjectTypes;
+import smartSpaces.Pandora.Game.Map.ObjectType;
 import smartSpaces.Pandora.Game.Panel;
 import smartSpaces.Pandora.Game.Player;
 import smartSpaces.Pandora.P2P.BluetoothServiceFragment;
@@ -480,7 +480,7 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
     @Override
     public void onSensorChanged(SensorEvent event) {
         // TODO: is always trying to recognize activity when it has last scanned an object. --> fix?
-        if(lastScannedObject == ObjectTypes.LOCK.getResource()){
+        if(lastScannedObject == ObjectType.LOCK.getResource()){
             if(lockpickbool == false){
                 lockpickbool = true;
                 Lockpicker();

@@ -18,6 +18,16 @@ public class Player {
         hasMap = mapPlayer;
     }
 
+    public Player(int number, boolean mapPlayer) {
+        id = number;
+        hasMap = mapPlayer;
+        panels = new Panel[0];
+    }
+
+    public int getId() {
+        return id;
+    }
+
     public void setPanel(int index, Panel panel) {
         if (index >= 0 && index < panels.length){
             panels[index] = panel;
