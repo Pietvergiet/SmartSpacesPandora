@@ -20,6 +20,14 @@ public interface Constants {
 
     String TASK_FAILED = "Failed";
 
+    String ACTIVITY_LOCKPICKING = "lockpicked";
+    String ACTIVITY_FLAG = "flag";
+    String ACTIVITY_SHAKE = "shake";
+    String ACTIVITY_PIROUETTE = "pirouette";
+    String ACTIVITY_STILL = "still";
+
+    String OBJECT_LOCK = "lock";
+
     String PRESSED = "Pressed";
     String RELEASED = "Released";
 

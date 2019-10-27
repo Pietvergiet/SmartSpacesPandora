@@ -1,7 +1,6 @@
 package smartSpaces.Pandora;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentTransaction;
 //import androidx.recyclerview.widget.GridLayoutManager;
 //import androidx.recyclerview.widget.RecyclerView;
@@ -17,7 +16,6 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.nfc.NfcAdapter;
-import android.nfc.Tag;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -25,39 +23,28 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
-import android.text.InputFilter;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.AdapterView;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.w3c.dom.Text;
-
-import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import pl.droidsonroids.gif.GifImageView;
 import smartSpaces.Pandora.Game.Activities.WekaClassifierActivities;
 import smartSpaces.Pandora.Game.Activities.WekaClassifierPicklock;
 import smartSpaces.Pandora.Game.GameClient;
+import smartSpaces.Pandora.Game.Map.ObjectTypes;
 import smartSpaces.Pandora.Game.Panel;
 import smartSpaces.Pandora.Game.Player;
-import smartSpaces.Pandora.P2P.BluetoothService;
 import smartSpaces.Pandora.P2P.BluetoothServiceFragment;
 import smartSpaces.Pandora.P2P.Constants;
 import smartSpaces.Pandora.Picklock.R;
@@ -71,6 +58,7 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
     Context view;
     private Boolean gameStarted = false;
     public Boolean panelsFilled = false;
+    public int lastScannedObject;
 
     // UI stuff
     public long TASKTIME = 30 * 1000;
@@ -82,6 +70,8 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
     public Boolean hasTask = false;
     public Typeface horrorFont;
     public Typeface pixelFont;
+
+    //NFC stuff
     NfcAdapter nfcAdapter;
     PendingIntent pendingIntent;
     IntentFilter writeTagFilters[];
@@ -89,20 +79,14 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
     public String coords = "";
     NFCReader reader = new NFCReader();
 
-
     //Activity Recognition meuk
-    int stableamount = 9;
+    int STABLE_AMOUNT = 9;
     double maxValue;
     double maxCount;
-
     private boolean accChanged, gyroChanged, magnetoChanged;
-
     List<Double> activitystable = new ArrayList<>();
-
-
     private SensorManager sensorManager;
     private Sensor accelerometer, gyroscope;
-
     private double accXValue, accYValue, accZValue;
     private double gyroXvalue, gyroYValue, gyroZValue;
 
@@ -110,20 +94,15 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
     //ALL VARIABLES FOR PICKLOCK
     int elapsedTime;
     long startTime;
-
     int flatTime = 0;
     int rightTime = 0;
     int middleTime = 0;
     int downTime = 0;
     int leftTime = 0;
-
-    int correctTime = 5;
-
+    int ACTIVITY_RECOGNITION_LENGTH = 5;
     String activity;
     List picklock = new ArrayList();
-
     List<Double> picklockstable = new ArrayList<>();
-
     boolean lockpickbool = false;
     boolean done = false;
 
@@ -183,27 +162,25 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
 
         @Override
         public void handleMessage(Message msg) {
-        switch (msg.what) {
-            case Constants.MESSAGE_READ:
-                readMessage((String) msg.obj);
-                break;
-//            case Constants.LOCATION_FOUND:
-//                locationFound((String) msg.obj);
-//
-//                break;
-            case Constants.ACTIVITY_RECOGNIZED:
-
-                break;
-        }
+            switch (msg.what) {
+                case Constants.MESSAGE_READ:
+                    readMessage((String) msg.obj);
+                    break;
+    //            case Constants.LOCATION_FOUND:
+    //                locationFound((String) msg.obj);
+    //
+    //                break;
+    //            case Constants.ACTIVITY_RECOGNIZED:
+    //
+    //                break;
+            }
         }
     };
 
-//    private void locationFound(String msg) {
-//        // TODO: convert msg to Location
-//        String[] splittedMessage = msg.split(Constants.MESSAGE_SEPARATOR);
-//        String location = splittedMessage[1];
-//    }
-
+    /**
+     * Read messages received from host
+     * @param msg
+     */
     private void readMessage(String msg) {
         String[] splittedMesssage = msg.split(Constants.MESSAGE_SEPARATOR);
         switch (splittedMesssage[0]) {
@@ -235,7 +212,7 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
     }
 
     public void handleReceiveLocation(String[] msg) {
-        //TODO: START ACTIVITY RECOGNITION
+        lastScannedObject = Integer.parseInt(msg[1]);
     }
 
     public void handleReceiveTask(String[] msg) {
@@ -272,7 +249,6 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
         }
     }
 
-
     public void startGame() {
         setContentView(R.layout.activity_explorer_game_screen);
 
@@ -303,11 +279,11 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
         taskView.setText(task);
 
         if (task.equals(Constants.TASK_FLAG)) {
-            //GifImageView animation = findViewById(R.id.animation);
-            //animation.setImageResource(R.drawable.flaganimation);
+            GifImageView animation = findViewById(R.id.animation);
+            animation.setImageResource(R.drawable.flaganimation);
         } else if (task.equals(Constants.TASK_SAFE)) {
-            //GifImageView animation = findViewById(R.id.animation);
-            //animation.setImageResource(R.drawable.safeanimation);
+            GifImageView animation = findViewById(R.id.animation);
+            animation.setImageResource(R.drawable.safeanimation);
         }
 
         CountDownTimer taskTimer = new CountDownTimer(TASKTIME, TASKTIME_INTERVAL) {
@@ -503,31 +479,28 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        //Dit is hoe het geimplement zou moeten worden, maar daar hebben we dus location enzo voor nodig.
-        if(location.object == lock && done ==false){
+        // TODO: is always trying to recognize activity when it has last scanned an object. --> fix?
+        if(lastScannedObject == ObjectTypes.LOCK.getResource()){
             if(lockpickbool == false){
                 lockpickbool = true;
                 Lockpicker();
             }
             checkSensorsChanged(event);
             if (accChanged && gyroChanged ) {
-
-                Double[] arraypicklock = getSensorData();
+                Double[] arrayPicklock = getSensorData();
 
                 try{
-                    double resultpick = WekaClassifierPicklock.classify(arraypicklock);
+                    double resultpick = WekaClassifierPicklock.classify(arrayPicklock);
                     if(picklockstable.size() == 0){
                         startTime = System.nanoTime();
                     }
                     picklockstable.add(resultpick);
-                    if(picklockstable.size() == stableamount){
-
+                    if(picklockstable.size() == STABLE_AMOUNT){
                         String textresultpicklock;
                         elapsedTime = (int)((System.nanoTime() - startTime)/1000000);
                         resultpick = getBestClassifiedActivity();
 
                         if(resultpick == 0.0){
-
                             textresultpicklock = "Left";
                             flatTime = 0;
                             rightTime = 0;
@@ -586,26 +559,17 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
                                 Lockpickerresult(middleTime);
                             }
                         }else{
-                            textresultpicklock = "you are doing nothing";
                             picklockstable.clear();
                         }
-
-                        System.out.println(textresultpicklock);
-                        System.out.println("volgende take zijn: " + picklock);
-
                     }
-
-
                 }catch (Exception e){
-                    System.out.println("and it stopped working");
+                    e.printStackTrace();
                 }
             }
-
-
+        } else {
+            checkSensorsChanged(event);
+            changedSensorActivity();
         }
-
-        checkSensorsChanged(event);
-        changedSensorActivity();
     }
 
     private void changedSensorActivity() {
@@ -615,48 +579,32 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
             try{
                 classifyData(array);
             }catch (Exception e){
-                System.out.println("and it stopped working");
+                e.printStackTrace();
             }
         }
     }
 
     private void classifyData(Double[] array) throws Exception {
         double result = WekaClassifierActivities.classify(array);
-
-        String textresult;
-
         activitystable.add(result);
-        if(activitystable.size() == stableamount){
 
-
+        if( activitystable.size() == STABLE_AMOUNT) {
             result = getBestClassifiedActivity();
-
-            if(result == 0.0){
-
-                textresult = "you are Flag";
-
-                activitystable.clear();
-            }else if(result == 1.0) {
-                textresult = "you are Still";
-
-                activitystable.clear();
-            }else if(result == 2.0) {
-                textresult = "you are Shaking";
-
-                activitystable.clear();
-            }else if(result == 3.0) {
-                textresult = "you are pirhouette";
-
-                activitystable.clear();
-            }else{
-                textresult = "you are doing nothing";
-
-                activitystable.clear();
+            String msg;
+            if (result == 0.0) {
+                msg = Constants.HEADER_TASK + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + Constants.ACTIVITY_FLAG;
+            } else if (result == 1.0) {
+                msg = Constants.HEADER_TASK + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + Constants.ACTIVITY_STILL;
+            } else if (result == 2.0) {
+                msg = Constants.HEADER_TASK + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + Constants.ACTIVITY_SHAKE;
+            } else if (result == 3.0) {
+                msg = Constants.HEADER_TASK + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + Constants.ACTIVITY_PIROUETTE;
+            } else {
+                return;
             }
 
-            //TextView placeText = (TextView)findViewById(R.id.textresult);
-            //placeText.setText(textresult);
-
+            fragment.sendMessage(msg);
+            activitystable.clear();
         }
     }
 
@@ -694,8 +642,6 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
     }
 
     private void checkSensorsChanged(SensorEvent event) {
-        Sensor sensor = event.sensor;
-
         Log.d(TAG, "onSensorChanged: sensor: " + Sensor.TYPE_ACCELEROMETER);
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER){
 
@@ -710,7 +656,6 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
             this.gyroZValue = event.values[2];
             gyroChanged = true;
         }
-
     }
 
 
@@ -727,62 +672,48 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
 
     public void Lockpicker(){
         picklock = randomActions(randomNumber());
-        System.out.println("allemaal dingen" + picklock);
         activity = picklock.get(0).toString();
-        //String textresult = activity;
-        //TextView placeText = (TextView)findViewById(R.id.textresult);
-        //placeText.setText(textresult);
     }
-    public void Lockpickerresult(int time){
 
-        if(correctTime < time){
+    public void Lockpickerresult(int time) {
+        if (ACTIVITY_RECOGNITION_LENGTH < time) {
             picklock.remove(0);
             Vibrate();
-            if(picklock.size() != 0){
+            if (picklock.size() != 0) {
                 activity = picklock.get(0).toString();
-
-            }else{
-                activity = "you did lockpicked it!";
+            } else {
+                String msg = Constants.HEADER_TASK + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + Constants.ACTIVITY_LOCKPICKING;
+                fragment.sendMessage(msg);
                 lockpickbool = false;
                 done = true;
             }
-            String textresult = activity;
-            //TextView placeText = (TextView)findViewById(R.id.textresult);
-            //placeText.setText(textresult);
         }
     }
+
     public int randomNumber() {
         int randomInt = new Random().nextInt(4) + 2;
         return randomInt;
     }
 
     public List randomActions(int amount){
-        int i = 0;
         List<String> myList = new ArrayList<String>();
         myList.add("Flat");
         myList.add("Right");
         myList.add("Middle");
         myList.add("Left");
         myList.add("Down");
-        List picklockactivity = new ArrayList();
-        int lastrand = 300;
-        while(i < amount){
-
+        List picklockActivity = new ArrayList();
+        int lastRand = 300;
+        for (int i = 0; i < amount; i++) {
             int rand = new Random().nextInt(myList.size());
-            if(lastrand == rand){
-                rand = (rand * rand * rand + 3) % myList.size();
+            while (rand == lastRand) {
+                rand = new Random().nextInt(myList.size());
             }
-            lastrand = rand;
-            String activitiy = myList.get(rand);
-
-            picklockactivity.add(activitiy);
-            i = i + 1;
+            picklockActivity.add(myList.get(rand));
         }
-        return picklockactivity;
+        return picklockActivity;
     }
 
     @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-
-    }
+    public void onAccuracyChanged(Sensor sensor, int accuracy) { }
 }
