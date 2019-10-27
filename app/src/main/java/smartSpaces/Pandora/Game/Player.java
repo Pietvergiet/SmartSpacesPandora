@@ -6,12 +6,22 @@ public class Player {
     private int id;
     private boolean hasMap;
     private Task displayTask;
-    private Panel panels[];
+    private Panel[] panels;
 
     public Player(int number, boolean mapPlayer, Panel[] panels) {
         id = number;
         hasMap = mapPlayer;
         this.panels = panels;
+    }
+
+    public Player(int number, boolean mapPlayer) {
+        id = number;
+        hasMap = mapPlayer;
+        panels = new Panel[0];
+    }
+
+    public int getId() {
+        return id;
     }
 
     public void setPanel(int index, Panel panel) {

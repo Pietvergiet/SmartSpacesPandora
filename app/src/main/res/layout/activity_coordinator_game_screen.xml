@@ -237,7 +237,7 @@
             android:layout_centerHorizontal="true"
             android:textSize="25dp"
             android:padding="10dp"
-            android:onClick="startGame"/>
+            android:onClick="startView"/>
     </RelativeLayout>
 
     <ImageView

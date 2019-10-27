@@ -84,9 +84,9 @@ public class HostGameController implements Serializable {
             vInt = r.nextInt(buttonAmount - i);
             String object = objects.get(vInt);
             objects.remove(object);
-            if(!game.addPanel(new Panel(i, verb, object))) {
-                break;
-            }
+//            if(!game.addPanel(new Panel(i, verb, object))) {
+//                break;
+//            }
         }
     }
 
