@@ -26,8 +26,6 @@ public class DeviceListActivity extends Activity {
     private static final String TAG = "DeviceListActivity";
     public static String EXTRA_DEVICE_ADDRESS  = "device_address";
     private SparseArray<BluetoothDevice> scannerdst;
-    private BluetoothService myBluetoothService;
-    private BluetoothAdapter mBluetoothAdapter;
     private BluetoothAdapter mBtAdapter;
     private ArrayAdapter<String> mNewDevicesArrayAdapter;
     ListView newDevicesListView;
@@ -50,7 +48,6 @@ public class DeviceListActivity extends Activity {
         newDevicesListView = findViewById(R.id.new_devices);
         newDevicesListView.setAdapter(mNewDevicesArrayAdapter);
         newDevicesListView.setOnItemClickListener(mDeviceClickListener);
-
         scannerdst = new SparseArray<>();
 
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
@@ -62,6 +59,9 @@ public class DeviceListActivity extends Activity {
             mBtAdapter.cancelDiscovery();
         }
 
+        for (BluetoothDevice device: mBtAdapter.getBondedDevices()) {
+            mNewDevicesArrayAdapter.add(device.getName() + "\n" + device.getAddress());
+        }
         mBtAdapter.startDiscovery();
         setTitle(R.string.select_device);
     }
