@@ -44,7 +44,7 @@ public interface Constants {
     String MESSAGE_SEPARATOR = "-";
     String MESSAGE_LIST_START = "[";
     String MESSAGE_LIST_SEPARATOR = ",";
-    String MESSAGE_LIST_ELEMENT_SEPARATOR = "+";
+    String MESSAGE_LIST_ELEMENT_SEPARATOR = "_";
     String MESSAGE_LIST_END = "]";
     String TOAST = "toast";
 }
