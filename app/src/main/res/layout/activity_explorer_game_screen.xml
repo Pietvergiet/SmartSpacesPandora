@@ -12,10 +12,10 @@
         android:layout_height="300dp"
         android:background="#000" >
         <pl.droidsonroids.gif.GifImageView
+            android:id="@+id/animation"
             android:layout_centerHorizontal="true"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:src="@drawable/safeanimation"
             />
     </RelativeLayout>
 
@@ -102,7 +102,6 @@
                         android:textColor="@color/white"
                         android:textSize="25dp"
                         android:tag="0"
-                        android:onClick="panelButtonClicked"
                         android:text="" />
                 </RelativeLayout>
 
@@ -132,7 +131,6 @@
                         android:textColor="@color/white"
                         android:textSize="25dp"
                         android:tag="1"
-                        android:onClick="panelButtonClicked"
                         android:text="" />
                 </RelativeLayout>
             </LinearLayout>
@@ -168,7 +166,6 @@
                         android:textColor="@color/white"
                         android:textSize="25dp"
                         android:tag="2"
-                        android:onClick="panelButtonClicked"
                         android:text="" />
                 </RelativeLayout>
 
@@ -198,43 +195,10 @@
                         android:textColor="@color/white"
                         android:textSize="25dp"
                         android:tag="3"
-                        android:onClick="panelButtonClicked"
                         android:text="" />
                 </RelativeLayout>
             </LinearLayout>
         </RelativeLayout>
-    </RelativeLayout>
-
-
-
-    <RelativeLayout
-        android:id="@+id/modal_start"
-        android:layout_width="300dp"
-        android:layout_height="250dp"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:elevation="10dp"
-        android:background="@color/white"
-        android:padding="30dp">
-        <TextView
-            android:id="@+id/wait_start_game"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:textColor="@color/black"
-            android:fontFamily="@font/gloria_hallelujah"
-            android:text="@string/wait_for_start" />
-
-        <ProgressBar
-            android:id="@+id/spinner"
-            android:layout_width="100dp"
-            android:layout_height="wrap_content"
-            android:indeterminate="true"
-            android:minHeight="50dp"
-            android:minWidth="50dp"
-            android:layout_centerVertical="true"
-            android:layout_centerHorizontal="true"
-            android:layout_alignParentBottom="true"/>
     </RelativeLayout>
 
     <ImageView

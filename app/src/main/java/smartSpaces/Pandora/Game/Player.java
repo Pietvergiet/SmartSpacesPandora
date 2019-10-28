@@ -14,6 +14,10 @@ public class Player {
         this.panels = panels;
     }
 
+    public Player(boolean mapPlayer) {
+        hasMap = mapPlayer;
+    }
+
     public Player(int number, boolean mapPlayer) {
         id = number;
         hasMap = mapPlayer;

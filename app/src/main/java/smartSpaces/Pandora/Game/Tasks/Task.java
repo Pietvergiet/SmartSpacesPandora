@@ -10,10 +10,9 @@ public abstract class Task {
         taskType = type;
     }
 
-    public Task(TaskType type, boolean ooncurrent) {
+    public Task(TaskType type, boolean concurrent) {
         taskType = type;
-        isConcurrent = ooncurrent;
-        buildDescription();
+        isConcurrent = concurrent;
     }
 
     public TaskType getTaskType() {
@@ -28,6 +27,5 @@ public abstract class Task {
         return description;
     }
 
-    public abstract void buildDescription();
 
 }
