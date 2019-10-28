@@ -162,8 +162,11 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
 
         @Override
         public void handleMessage(Message msg) {
+            Log.d(TAG, "handleMessage: Incoming msg: " + msg);
+
             switch (msg.what) {
                 case Constants.MESSAGE_READ:
+                    Log.d(TAG, "handleMessage: Incoming message: " + msg.obj);
                     readMessage((String) msg.obj);
                     break;
     //            case Constants.LOCATION_FOUND:
@@ -230,6 +233,7 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
     }
 
     public void handleReceiveButtons(String[] msg) {
+        Log.d(TAG, "handleReceiveButtons: Received buttons...");
         String btnAmount = msg[1];
         Panel[] panels = new Panel[Integer.parseInt(btnAmount)];
         String list = msg[2];
@@ -243,6 +247,8 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
             panels[i] = panel;
         }
         player.setPanels(panels);
+        Log.d(TAG, "handleReceiveButtons: Panels created: " + panels);
+        Log.d(TAG, "handleReceiveButtons: panels received: " + player.getPanels());
         if (gameStarted) {
             fillPanels(player.getPanels());
             panelsFilled = true;
@@ -258,7 +264,8 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
         TextView taskText = findViewById(R.id.task);
         taskText.setTypeface(pixelFont);
 
-        if (player.getPanels().length > 0) {
+        Log.d(TAG, "startGame: panels: " + player.getPanels());
+        if (player.getPanels() != null && player.getPanels().length > 0) {
             fillPanels(player.getPanels());
         }
 
@@ -397,10 +404,13 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
         btn1.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
+                Log.d(TAG, "onTouch: Button clicked");
                 if (motionEvent.getAction() == MotionEvent.ACTION_BUTTON_PRESS) {
+                    Log.d(TAG, "onTouch: Button pressed");
                     String msg = Constants.HEADER_BUTTON + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + panels[0].getId() + Constants.MESSAGE_SEPARATOR + Constants.PRESSED;
                     fragment.sendMessage(msg);
                 } else if (motionEvent.getAction() == MotionEvent.ACTION_BUTTON_RELEASE) {
+                    Log.d(TAG, "onTouch: Button released");
                     String msg = Constants.HEADER_BUTTON + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + panels[0].getId() + Constants.MESSAGE_SEPARATOR + Constants.RELEASED;
                     fragment.sendMessage(msg);
                 }
@@ -480,96 +490,98 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
     @Override
     public void onSensorChanged(SensorEvent event) {
         // TODO: is always trying to recognize activity when it has last scanned an object. --> fix?
-        if(lastScannedObject == ObjectType.LOCK.getResource()){
-            if(lockpickbool == false){
-                lockpickbool = true;
-                Lockpicker();
-            }
-            checkSensorsChanged(event);
-            if (accChanged && gyroChanged ) {
-                Double[] arrayPicklock = getSensorData();
-                changedSensorActivity(arrayPicklock);
-
-                try{
-                    double resultpick = WekaClassifierPicklock.classify(arrayPicklock);
-                    if(picklockstable.size() == 0){
-                        startTime = System.nanoTime();
-                    }
-                    picklockstable.add(resultpick);
-                    if(picklockstable.size() == STABLE_AMOUNT){
-                        String textresultpicklock;
-                        elapsedTime = (int)((System.nanoTime() - startTime)/1000000);
-                        resultpick = getBestClassifiedActivity();
-
-                        if(resultpick == 0.0){
-                            textresultpicklock = "Left";
-                            flatTime = 0;
-                            rightTime = 0;
-                            middleTime = 0;
-                            downTime = 0;
-                            leftTime= leftTime + elapsedTime;
-                            picklockstable.clear();
-                            if(activity.equals(textresultpicklock)){
-                                Lockpickerresult(leftTime);
-                            }
-                        }else if(resultpick == 1.0) {
-                            textresultpicklock = "Down";
-                            flatTime = 0;
-                            rightTime = 0;
-                            middleTime = 0;
-                            leftTime = 0;
-                            downTime= downTime + elapsedTime;
-                            picklockstable.clear();
-                            if(activity.equals(textresultpicklock)){
-                                Lockpickerresult(downTime);
-                            }
-                        }else if(resultpick == 2.0) {
-                            textresultpicklock = "Flat";
-                            rightTime = 0;
-                            middleTime = 0;
-                            leftTime = 0;
-                            downTime = 0;
-
-                            flatTime= flatTime + elapsedTime;
-                            picklockstable.clear();
-                            if(activity.equals(textresultpicklock)){
-                                Lockpickerresult(flatTime);
-                            }
-                        }else if(resultpick == 3.0) {
-                            textresultpicklock = "Right";
-                            middleTime = 0;
-                            leftTime = 0;
-                            downTime = 0;
-                            flatTime = 0;
-
-
-                            rightTime= rightTime + elapsedTime;
-                            picklockstable.clear();
-                            if(activity.equals(textresultpicklock)){
-                                Lockpickerresult(rightTime);
-                            }
-                        }else if(resultpick == 4.0) {
-                            rightTime = 0;
-                            leftTime = 0;
-                            downTime = 0;
-                            flatTime = 0;
-                            textresultpicklock = "Middle";
-                            middleTime= middleTime + elapsedTime;
-                            picklockstable.clear();
-                            if(activity.equals(textresultpicklock)){
-                                Lockpickerresult(middleTime);
-                            }
-                        }else{
-                            picklockstable.clear();
-                        }
-                    }
-                }catch (Exception e){
-                    e.printStackTrace();
+        if (gameStarted) {
+            if(lastScannedObject == ObjectType.LOCK.getResource()){
+                if(lockpickbool == false){
+                    lockpickbool = true;
+                    Lockpicker();
                 }
+                checkSensorsChanged(event);
+                if (accChanged && gyroChanged ) {
+                    Double[] arrayPicklock = getSensorData();
+                    changedSensorActivity(arrayPicklock);
+
+                    try{
+                        double resultpick = WekaClassifierPicklock.classify(arrayPicklock);
+                        if(picklockstable.size() == 0){
+                            startTime = System.nanoTime();
+                        }
+                        picklockstable.add(resultpick);
+                        if(picklockstable.size() == STABLE_AMOUNT){
+                            String textresultpicklock;
+                            elapsedTime = (int)((System.nanoTime() - startTime)/1000000);
+                            resultpick = getBestClassifiedActivity();
+
+                            if(resultpick == 0.0){
+                                textresultpicklock = "Left";
+                                flatTime = 0;
+                                rightTime = 0;
+                                middleTime = 0;
+                                downTime = 0;
+                                leftTime= leftTime + elapsedTime;
+                                picklockstable.clear();
+                                if(activity.equals(textresultpicklock)){
+                                    Lockpickerresult(leftTime);
+                                }
+                            }else if(resultpick == 1.0) {
+                                textresultpicklock = "Down";
+                                flatTime = 0;
+                                rightTime = 0;
+                                middleTime = 0;
+                                leftTime = 0;
+                                downTime= downTime + elapsedTime;
+                                picklockstable.clear();
+                                if(activity.equals(textresultpicklock)){
+                                    Lockpickerresult(downTime);
+                                }
+                            }else if(resultpick == 2.0) {
+                                textresultpicklock = "Flat";
+                                rightTime = 0;
+                                middleTime = 0;
+                                leftTime = 0;
+                                downTime = 0;
+
+                                flatTime= flatTime + elapsedTime;
+                                picklockstable.clear();
+                                if(activity.equals(textresultpicklock)){
+                                    Lockpickerresult(flatTime);
+                                }
+                            }else if(resultpick == 3.0) {
+                                textresultpicklock = "Right";
+                                middleTime = 0;
+                                leftTime = 0;
+                                downTime = 0;
+                                flatTime = 0;
+
+
+                                rightTime= rightTime + elapsedTime;
+                                picklockstable.clear();
+                                if(activity.equals(textresultpicklock)){
+                                    Lockpickerresult(rightTime);
+                                }
+                            }else if(resultpick == 4.0) {
+                                rightTime = 0;
+                                leftTime = 0;
+                                downTime = 0;
+                                flatTime = 0;
+                                textresultpicklock = "Middle";
+                                middleTime= middleTime + elapsedTime;
+                                picklockstable.clear();
+                                if(activity.equals(textresultpicklock)){
+                                    Lockpickerresult(middleTime);
+                                }
+                            }else{
+                                picklockstable.clear();
+                            }
+                        }
+                    }catch (Exception e){
+                        e.printStackTrace();
+                    }
+                }
+            } else {
+                checkSensorsChanged(event);
+                changedSensorActivity();
             }
-        } else {
-            checkSensorsChanged(event);
-            changedSensorActivity();
         }
     }
 
@@ -652,14 +664,14 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
     }
 
     private void checkSensorsChanged(SensorEvent event) {
-        Log.d(TAG, "onSensorChanged: sensor: " + Sensor.TYPE_ACCELEROMETER);
+//        Log.d(TAG, "onSensorChanged: sensor: " + Sensor.TYPE_ACCELEROMETER);
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER){
 
             this.accXValue = event.values[0];
             this.accYValue = event.values[1];
             this.accZValue = event.values[2];
             accChanged = true;
-            Log.d(TAG, "startTracking: sensordata changed: x: " + this.accXValue + ", y: " + this.accYValue + ", z: " + this.accZValue);
+//            Log.d(TAG, "startTracking: sensordata changed: x: " + this.accXValue + ", y: " + this.accYValue + ", z: " + this.accZValue);
         } else if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
             this.gyroXvalue = event.values[0];
             this.gyroYValue = event.values[1];
