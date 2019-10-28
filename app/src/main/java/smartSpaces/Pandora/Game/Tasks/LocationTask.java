@@ -1,5 +1,7 @@
 package smartSpaces.Pandora.Game.Tasks;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -33,12 +35,11 @@ public class LocationTask extends Task {
         buildDescription();
     }
 
-    public LocationTask(ArrayList<Object> list) {
+    public LocationTask(ArrayList<MapObject> list) {
+
         super(TaskType.LOCATION_CONCURRENT, true);
-        if(list.get(0) instanceof Location) {
-            locations = (ArrayList<Location>)(ArrayList<?>) list;
-        } else if (list.get(0) instanceof  MapObject)
-            mapObjects = (ArrayList<MapObject>)(ArrayList<?>) list;
+        Log.i("LOCATIONTASKCONSTRUCTor", list.toString());
+        this.mapObjects = list;
 
         buildDescription();
     }
@@ -51,7 +52,6 @@ public class LocationTask extends Task {
 
     }
 
-    @Override
     public void buildDescription(){
         StringBuilder desc = new StringBuilder();
         if (super.getTaskType() == TaskType.LOCATION) {
@@ -64,7 +64,7 @@ public class LocationTask extends Task {
                 desc.append("the ");
                 desc.append(mapObject.getName());
             }
-            description = desc.toString();
+            super.description = desc.toString();
         } else if (super.getTaskType() == TaskType.LOCATION_CONCURRENT){
             desc.append("Occupy these places: ");
             if (mapObjects == null) {
@@ -83,6 +83,7 @@ public class LocationTask extends Task {
                     desc.deleteCharAt(desc.length()-1);
                 }
             }
+            super.description = desc.toString();
         }
     }
 
