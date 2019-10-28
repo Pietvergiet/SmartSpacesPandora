@@ -76,17 +76,8 @@ public class GameMap {
         return new ArrayList<>(objects.values());
     }
 
-    /**
-     * Removes an {@link MapObject} from the map.
-     * @param object The {@link MapObject}
-     */
-    public void removeObject(MapObject object) {
-        objects.remove(object);
-    }
 
-    public void removeObject(int index) {
-        objects.remove(index);
-    }
+    public void removeObject(Location location) {objects.remove(location); }
 
     /**
      * Returns the {@link Location} of a certain {@link MapObject}
