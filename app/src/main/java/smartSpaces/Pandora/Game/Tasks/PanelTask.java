@@ -1,6 +1,7 @@
 package smartSpaces.Pandora.Game.Tasks;
 
 import android.text.TextUtils;
+import android.util.Log;
 
 import org.w3c.dom.Text;
 
@@ -18,6 +19,7 @@ public class PanelTask extends Task{
     public PanelTask(Panel panel) {
         super(TaskType.PANEL);
         taskPanel = panel;
+        buildDescription();
     }
 
     public PanelTask(ArrayList<Panel> panels) {
@@ -26,20 +28,21 @@ public class PanelTask extends Task{
         for (Panel p : panels){
             concurPanels.put(p, false);
         }
+        buildDescription();
     }
 
-    @Override
     public void buildDescription() {
+        Log.i("PANELTASK", concurPanels.toString() + " iscon" + isConcurrent());
         if (isConcurrent()){
             ArrayList<String> d = new ArrayList<>();
             for (Panel p: concurPanels.keySet()) {
                 d.add(p.getVerb() + " the " + p.getObject());
             }
-            description = TextUtils.join(",", d);
+            super.description = TextUtils.join(",", d);
 
         } else {
             String desc = taskPanel.getVerb() + " the " + taskPanel.getObject();
-            description = desc;
+            super.description = desc;
         }
 
     }

@@ -177,7 +177,8 @@ public class CoordinatorGameScreen extends AppCompatActivity {
      *
      */
     public void startGame(){
-        playerIds = bServiceFragment.getClientIds();
+        playerIds = new HashSet<>(bServiceFragment.getClientIds());
+        Log.i(TAG, "IDs" + playerIds.toString());
         playerIds.add(HOSTPLAYERID);
         initMap();
         initButtons();
@@ -248,6 +249,8 @@ public class CoordinatorGameScreen extends AppCompatActivity {
             }
             gameMap.addObject(new MapObject(ot), rLoc);
         }
+        Log.i("INITGAMEMAP", gameMap.getObjects().toString());
+        drawMap();
     }
 
     /**
@@ -265,9 +268,11 @@ public class CoordinatorGameScreen extends AppCompatActivity {
 
     private void initTasks(){
         for(int id : playerIds) {
-            Task task = randomTaskForPlayer(id);
-            game.getPlayer(id).setTask(task);
-            sendNewTask(id);
+            if (id != HOSTPLAYERID) {
+                Task task = randomTaskForPlayer(id);
+                game.newTask(game.getPlayer(id), task);
+                sendNewTask(id);
+            }
         }
     }
 
@@ -277,6 +282,7 @@ public class CoordinatorGameScreen extends AppCompatActivity {
     private Task randomTaskForPlayer(int id) {
         Player player = game.getPlayer(id);
         TaskType rTask = getRandomTaskType();
+//        TaskType rTask = TaskType.LOCATION_CONCURRENT;
         Random r = new Random();
         Task task = null;
         switch (rTask) {
@@ -306,11 +312,14 @@ public class CoordinatorGameScreen extends AppCompatActivity {
                 break;
             case LOCATION_CONCURRENT:
                 HashSet<MapObject> objects = new HashSet<>();
-                int locationAmount = game.getPlayerAmount() > gameMap.getObjects().size() ? gameMap.getObjects().size() : game.getPlayerAmount() -1;
+                Log.i("LOCATIONCONCURRENT", gameMap.getObjects().toString());
+                Log.i("PLAYERAMOUNT", game.getPlayerAmount() + " ");
+                int locationAmount = game.getPlayerAmount() > gameMap.getObjects().size() ? gameMap.getObjects().size() : game.getPlayerAmount();
                 while(objects.size() < locationAmount) {
                     objects.add(randomMapObject());
                 }
-                task =  new LocationTask(new ArrayList<Object>(objects));
+                Log.i("LOCATIONCONCURRENT", objects.toString() + "  " + locationAmount);
+                task =  new LocationTask(new ArrayList<>(objects));
                 break;
         }
         return task;
@@ -519,8 +528,8 @@ public class CoordinatorGameScreen extends AppCompatActivity {
         p.setColor(Color.BLACK);
         tempCanvas.drawBitmap(scaledbm, 0, 0, null);
 
-        for (int i = 0; i < gameMap.getInvisibleList().size(); i ++) {
-            Location block = gameMap.getInvisibleList().get(i);
+        for (int i = 0; i < gameMap.getVisibleList().size(); i ++) {
+            Location block = gameMap.getVisibleList().get(i);
 
             float left = (float) (block.getX() * stepsize);
             float right = left + stepsize;
@@ -592,6 +601,7 @@ public class CoordinatorGameScreen extends AppCompatActivity {
     private void sendNewTask(int playerId){
         ArrayList<String> message = new ArrayList<>();
         message.add(Constants.HEADER_TASK);
+        Log.i(TAG, playerId + "  " + game.getPlayerTasks().toString());
         message.add(game.getPlayerTasks().get(game.getPlayer(playerId)).getDescription());
         String out = TextUtils.join(Constants.MESSAGE_SEPARATOR, message);
         bServiceFragment.sendMessage(out, playerId);

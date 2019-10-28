@@ -19,7 +19,7 @@ public class Panel {
         this.object = getRandomObject();
     }
 
-    public Panel(int id, String verb, String object) {
+    public Panel(int id, String verb, String object){
         this.id = id;
         this.verb = verb;
         this.object = object;

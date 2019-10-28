@@ -1,5 +1,7 @@
 package smartSpaces.Pandora.Game.Tasks;
 
+import android.util.Log;
+
 import smartSpaces.Pandora.Game.Map.MapObject;
 
 /**
@@ -42,9 +44,9 @@ public class MotionTask extends Task{
         this.motionType = motionType;
     }
 
-    @Override
     public void buildDescription() {
         String desc = "Shit's broken yo";
+        Log.i("MOTIIONTASK" , motionType.getResource() + "  " + motionType.toString());
         switch (motionType) {
             case PICK_LOCK:
                 desc = "Pick the lock";
@@ -65,7 +67,7 @@ public class MotionTask extends Task{
             case SHAKE_PHONE:
                 desc = "Shake phones";
         }
-        description = desc;
+        super.description = desc;
     }
 
     public MapObject getMapObject() {

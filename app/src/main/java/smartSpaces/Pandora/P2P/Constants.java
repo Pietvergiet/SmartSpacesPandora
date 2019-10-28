@@ -15,17 +15,24 @@ public interface Constants {
 
     int INSTRUCTION_DONE = 9;
 
-
     String TASK_FLAG = "Raise a flag";
     String TASK_SAFE = "Open a safe";
+
+    String TASK_FAILED = "Failed";
+
+    String ACTIVITY_LOCKPICKING = "lockpicked";
+    String ACTIVITY_FLAG = "flag";
+    String ACTIVITY_SHAKE = "shake";
+    String ACTIVITY_PIROUETTE = "pirouette";
+    String ACTIVITY_STILL = "still";
+
+    String OBJECT_LOCK = "lock";
 
     String PRESSED = "Pressed";
     String RELEASED = "Released";
 
     String WIN = "win";
     String LOSE = "lose";
-
-    String TASK_FAILED = "Failed";
 
     String HEADER_TASK = "T";
     String HEADER_LOCATION = "L";
