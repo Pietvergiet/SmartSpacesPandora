@@ -2,6 +2,7 @@ package smartSpaces.Pandora;
 
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.stream.IntStream;
@@ -13,8 +14,13 @@ import smartSpaces.Pandora.Game.Panel;
 import smartSpaces.Pandora.Game.Player;
 import smartSpaces.Pandora.Game.Tasks.LocationTask;
 import smartSpaces.Pandora.Game.Tasks.MotionActivityType;
+import smartSpaces.Pandora.Game.Tasks.MotionTask;
+import smartSpaces.Pandora.Game.Tasks.PanelTask;
+import smartSpaces.Pandora.Game.Tasks.Task;
+import smartSpaces.Pandora.Game.Tasks.TaskType;
 
 import static org.junit.Assert.*;
+import static smartSpaces.Pandora.Game.Tasks.TaskType.MOTION;
 
 
 /**
@@ -87,10 +93,11 @@ public class ExampleUnitTest {
     public  void createObjects(){
         //create location for adding object to the map
         Location location = new Location(1,2);
-        int x = 5;
-        int y = 5;
+
 
         //create map and object for on the map
+        int x = 5;
+        int y = 5;
         GameMap map = new GameMap(x,y);
         ObjectType object = ObjectType.LOCK;
         MapObject mobject = new MapObject(object);
@@ -166,5 +173,94 @@ public class ExampleUnitTest {
         assertEquals(player.getPanels().length, 2);
 
 
+        MotionTask task = new MotionTask(MotionActivityType.SHAKE_PHONE);
+        player.setTask(task);
+        boolean taskbool = player.getTask() instanceof Task;
+        assertEquals(taskbool, true);
+
+        Player player2 = new Player(false);
+        assertEquals(player2.getHasMap(), false);
+
+
+    }
+    @Test
+    public void createLocationTask(){
+        Location location = new Location(1,1);
+        Location location1 = new Location(1,2);
+        LocationTask task = new LocationTask(location);
+        assertEquals(task.getCoordinates(),location);
+
+        //create map and object for on the map
+        int x = 5;
+        int y = 5;
+        GameMap map = new GameMap(x,y);
+        ObjectType object = ObjectType.LOCK;
+        MapObject mobject = new MapObject(object);
+
+        LocationTask task2 = new LocationTask(location,mobject);
+        assertEquals(task2.getCoordinates(), task2.getCoordinates());
+        assertEquals(task2.getMapObject(), mobject);
+
+        LocationTask task3 = new LocationTask(mobject);
+        assertEquals(task3.getMapObject(), mobject);
+
+        ArrayList<Location> locations = new ArrayList<>();
+        locations.add(location);
+        locations.add(location1);
+        ArrayList<MapObject> objects = new ArrayList<>();
+        objects.add(mobject);
+        objects.add(mobject);
+        LocationTask task4 = new LocationTask(objects);
+        assertEquals(task4.getMapObjects(), objects);
+        LocationTask task5 = new LocationTask(locations, objects);
+        assertEquals(task5.getLocations(), locations);
+
+        boolean stringcorrect = task.getDescription() instanceof String;
+        assertEquals(true, stringcorrect);
+    }
+
+    @Test
+    public void createMotionTask(){
+        //create map and object for on the map
+        int x = 5;
+        int y = 5;
+        GameMap map = new GameMap(x,y);
+        ObjectType object = ObjectType.LOCK;
+        MapObject mobject = new MapObject(object);
+
+        MotionTask task = new MotionTask(MotionActivityType.SHAKE_PHONE);
+        MotionTask task2 = new MotionTask(MotionActivityType.HOLD_IN_PLACE, mobject);
+        MotionTask task3 = new MotionTask(MotionActivityType.PIROUETTE, false);
+        MotionTask task4 = new MotionTask(MotionActivityType.PICK_LOCK);
+        MotionTask task5 = new MotionTask(MotionActivityType.RAISE_FLAG);
+        MotionTask task6 = new MotionTask(MotionActivityType.PIROUETTE);
+        assertEquals(ObjectType.LOCK, task4.getMotionType().getObjectType());
+        assertEquals(2, task5.getMotionType().getResource());
+        assertEquals(task.getMotionType(), MotionActivityType.SHAKE_PHONE);
+        assertEquals(task2.getMotionType(), MotionActivityType.HOLD_IN_PLACE);
+        assertEquals(task3.getMotionType(), MotionActivityType.PIROUETTE);
+        assertEquals(task2.getMapObject(), mobject);
+
+    }
+    @Test
+    public void createPanelTask(){
+        Panel panel = new Panel(1);
+        Panel paneltwo = new Panel(2);
+        PanelTask task = new PanelTask(paneltwo);
+        assertEquals(task.getTaskPanel(), paneltwo);
+
+        ArrayList<Panel> panels = new ArrayList<>();
+        panels.add(panel);
+        panels.add(paneltwo);
+        //als TextUtil is uitgecomment werkt het.
+        PanelTask tasktwo = new PanelTask(panels);
+        boolean complete = tasktwo.isCompleted();
+        assertEquals(complete, false);
+
+        assertEquals(tasktwo.getConcurPanels().size(), 2);
+        tasktwo.setPressed(1);
+        assertEquals(true, tasktwo.getConcurPanels().get(panel).booleanValue());
+        tasktwo.setReleased(1);
+        assertEquals(false, tasktwo.getConcurPanels().get(panel).booleanValue());
     }
 }

@@ -32,12 +32,13 @@ public class PanelTask extends Task{
     }
 
     public void buildDescription() {
-        Log.i("PANELTASK", concurPanels.toString() + " iscon" + isConcurrent());
+        //Log.i("PANELTASK", concurPanels.toString() + " iscon" + isConcurrent());
         if (isConcurrent()){
             ArrayList<String> d = new ArrayList<>();
             for (Panel p: concurPanels.keySet()) {
                 d.add(p.getVerb() + " the " + p.getObject());
             }
+            //voor de Unit test gaat TextUtils.join fout, maar geen idee waardoor
             super.description = TextUtils.join(",", d);
 
         } else {

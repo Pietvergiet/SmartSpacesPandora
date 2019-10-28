@@ -38,7 +38,7 @@ public class LocationTask extends Task {
     public LocationTask(ArrayList<MapObject> list) {
 
         super(TaskType.LOCATION_CONCURRENT, true);
-        Log.i("LOCATIONTASKCONSTRUCTor", list.toString());
+        //Log.i("LOCATIONTASKCONSTRUCTor", list.toString());
         this.mapObjects = list;
 
         buildDescription();
