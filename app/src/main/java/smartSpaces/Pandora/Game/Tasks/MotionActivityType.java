@@ -9,9 +9,9 @@ public enum MotionActivityType {
 
     PICK_LOCK(1, ObjectType.LOCK),
     RAISE_FLAG(2, ObjectType.ROPE),
-    PIROUETTE(3, ObjectType.KEY),
-    HOLD_IN_PLACE(4, ObjectType.KEY),
-    SHAKE_PHONE(5, ObjectType.KEY);
+    PIROUETTE(3, ObjectType.ROPE),
+    HOLD_IN_PLACE(4, ObjectType.ROPE),
+    SHAKE_PHONE(5, ObjectType.ROPE);
 
     private ObjectType objectType;
     private int resource;

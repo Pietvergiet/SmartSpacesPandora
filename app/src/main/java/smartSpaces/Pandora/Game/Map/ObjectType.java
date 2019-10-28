@@ -5,8 +5,7 @@ import smartSpaces.Pandora.Game.Tasks.MotionActivityType;
 public enum ObjectType {
 
     ROPE(1, MotionActivityType.RAISE_FLAG, false),
-    LOCK(2, MotionActivityType.PICK_LOCK, false),
-    KEY(3, false);
+    LOCK(2, MotionActivityType.PICK_LOCK, false);
 
     private int resource;
     private MotionActivityType motionActivityType;
