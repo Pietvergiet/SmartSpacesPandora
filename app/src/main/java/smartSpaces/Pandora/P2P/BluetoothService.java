@@ -474,8 +474,9 @@ public class BluetoothService {
 
                 // Share the sent message with the UI activity.
                 Message writtenMsg = handler.obtainMessage(
-                        Constants.MESSAGE_WRITE, -1, -1, mmBuffer);
+                        Constants.MESSAGE_WRITE, -1, -1, bytes);
                 writtenMsg.sendToTarget();
+                Thread.sleep(100);
             } catch (IOException e) {
                 Log.e(TAG, "Error occurred when sending data", e);
 
@@ -487,6 +488,8 @@ public class BluetoothService {
                         "Couldn't send data to the other device");
                 writeErrorMsg.setData(bundle);
                 handler.sendMessage(writeErrorMsg);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
 

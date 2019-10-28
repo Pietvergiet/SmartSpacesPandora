@@ -192,7 +192,7 @@ public class CoordinatorGameScreen extends AppCompatActivity {
      */
     public void startView(View view) {
         startGame();
-
+        sendGameStart();
         RelativeLayout modal = findViewById(R.id.modal_start);
         modal.setVisibility(View.GONE);
 
@@ -215,7 +215,7 @@ public class CoordinatorGameScreen extends AppCompatActivity {
 
         timer.start();
 
-        sendGameStart();
+
 //        setTask("Chase a cart");
     }
     //endregion
@@ -260,18 +260,25 @@ public class CoordinatorGameScreen extends AppCompatActivity {
     private void initPlayers() {
         int startId = 0;
         for (int id : playerIds) {
-            List<Panel> p = panels.subList(startId, game.getPanelsPerPlayer());
-            game.addPlayer(new Player(id, false, p.toArray(new Panel[0])));
-            sendPlayerPanels(id);
+            if (id != HOSTPLAYERID) {
+                List<Panel> p = panels.subList(startId, game.getPanelsPerPlayer());
+                Log.i("PANELFOR PLAYER", id + ": " + p.toString() + "  " + p.toArray(new Panel[0]).toString());
+                game.addPlayer(new Player(id, false, p.toArray(new Panel[0])));
+                Log.i("INITPLAYER", id + "");
+                sendPlayerPanels(id);
+            }
         }
     }
 
     private void initTasks(){
         for(int id : playerIds) {
+            Task task = randomTaskForPlayer(id);
+            game.newTask(game.getPlayer(id), task);
             if (id != HOSTPLAYERID) {
-                Task task = randomTaskForPlayer(id);
-                game.newTask(game.getPlayer(id), task);
+
                 sendNewTask(id);
+            } else {
+                setTask(task.getDescription());
             }
         }
     }
@@ -287,6 +294,7 @@ public class CoordinatorGameScreen extends AppCompatActivity {
         Task task = null;
         switch (rTask) {
             case PANEL:
+                Log.i(TAG, panels.toString());
                 ArrayList<Panel> pList = new ArrayList<>(panels);
                 pList.removeAll(Arrays.asList(player.getPanels()));
                 task = new PanelTask(pList.get(r.nextInt(pList.size())));
@@ -294,18 +302,27 @@ public class CoordinatorGameScreen extends AppCompatActivity {
             case PANEL_CONCURRENT:
                 ArrayList<Panel> list = new ArrayList<>();
                 for (int i : playerIds){
-                    list.add(game.getPlayer(i).getPanels()[r.nextInt(game.getPanelsPerPlayer())]);
+                    Log.i("PANEL CONCURRENT", game.getPlayer(i).getPanels().length + "   " + game.getPanelsPerPlayer() );
+                    if (i != HOSTPLAYERID) {
+                        list.add(game.getPlayer(i).getPanels()[r.nextInt(game.getPanelsPerPlayer())]);
+                    }
                 }
                 task = new PanelTask(list);
                 break;
             case MOTION:
-                task = new MotionTask(randomMotionActivityType());
+                MotionActivityType gtype = randomMotionActivityType();
+                Log.i("MOTIonTTYPER", gtype.toString());
+                task = new MotionTask(gtype);
                 break;
             case MOTION_LOCATION:
-                task = new MotionTask(randomMotionActivityType(), randomMapObject());
+                MotionActivityType type = randomMotionActivityType();
+                Log.i("MOTIonTTYPER0 LOCATION", type.toString());
+                task = new MotionTask(type, randomMapObject());
                 break;
             case MOTION_CONCURRENT:
-                task = new MotionTask(randomMotionActivityType(), true);
+                MotionActivityType rtype = randomMotionActivityType();
+                Log.i("MOTIonTTYP CONCURRETN", rtype.toString());
+                task = new MotionTask(rtype, true);
                 break;
             case LOCATION:
                 task = new LocationTask(randomMapObject());
@@ -328,11 +345,18 @@ public class CoordinatorGameScreen extends AppCompatActivity {
     private MotionActivityType randomMotionActivityType(){
         Random r = new Random();
         ArrayList<MapObject> objects = gameMap.getObjects();
-        ArrayList<MotionActivityType> activities = new ArrayList<>();
-        for(MapObject m : objects) {
-            activities.add(m.getObjectType().getMotionActivityType());
-        }
-        return activities.get(r.nextInt(activities.size()));
+        Log.i("RANDOMMOTIN", objects.toString());
+        Log.i("RANodMMOTi", objects.get(0).getObjectType().toString());
+        Log.i("RANODMMOIT", objects.get(0).getObjectType().getMotionActivityType().toString());
+        int index = r.nextInt(objects.size());
+        MotionActivityType result = objects.get(index).getObjectType().getMotionActivityType();
+        Log.i("MOTINEONDGD", index + " : " + result.toString());
+        return result;
+//        ArrayList<MotionActivityType> activities = new ArrayList<>();
+//        for(MapObject m : objects) {
+//            activities.add(m.getObjectType().getMotionActivityType());
+//        }
+//        return activities.get(r.nextInt(activities.size()));
     }
 
     private TaskType getRandomTaskType() {
@@ -353,6 +377,11 @@ public class CoordinatorGameScreen extends AppCompatActivity {
     //endregion
 
     //region View updaters
+
+    public void updateGameStatus() {
+
+    }
+
     /**
      * Updates the game timer (microwave view)
      * @param min
@@ -528,8 +557,8 @@ public class CoordinatorGameScreen extends AppCompatActivity {
         p.setColor(Color.BLACK);
         tempCanvas.drawBitmap(scaledbm, 0, 0, null);
 
-        for (int i = 0; i < gameMap.getVisibleList().size(); i ++) {
-            Location block = gameMap.getVisibleList().get(i);
+        for (int i = 0; i < gameMap.getInvisibleList().size(); i ++) {
+            Location block = gameMap.getInvisibleList().get(i);
 
             float left = (float) (block.getX() * stepsize);
             float right = left + stepsize;
@@ -591,6 +620,7 @@ public class CoordinatorGameScreen extends AppCompatActivity {
 
     //region Communication
     private void sendGameStart() {
+        Log.i("START SEND", "SENDST START");
         bServiceFragment.sendMessage(Constants.HEADER_START);
     }
 
@@ -601,10 +631,10 @@ public class CoordinatorGameScreen extends AppCompatActivity {
     private void sendNewTask(int playerId){
         ArrayList<String> message = new ArrayList<>();
         message.add(Constants.HEADER_TASK);
-        Log.i(TAG, playerId + "  " + game.getPlayerTasks().toString());
+        Log.i("SENDNEWTASK", playerId + "  " + game.getPlayerTasks().toString());
         message.add(game.getPlayerTasks().get(game.getPlayer(playerId)).getDescription());
         String out = TextUtils.join(Constants.MESSAGE_SEPARATOR, message);
-        bServiceFragment.sendMessage(out, playerId);
+        bServiceFragment.sendMessage(out);
     }
 
     private void sendLocationObject(MapObject object, int playerId) {
@@ -630,8 +660,8 @@ public class CoordinatorGameScreen extends AppCompatActivity {
                 TextUtils.join(Constants.MESSAGE_LIST_SEPARATOR, list));
 
         String out = TextUtils.join(Constants.MESSAGE_SEPARATOR, message);
-
-        bServiceFragment.sendMessage(out, playerId);
+        Log.i("SEND PANEL", out);
+        bServiceFragment.sendMessage(out);
     }
 
     private void sendHazardTriggered(MapObject hazard, int playerId){
