@@ -488,6 +488,7 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
             checkSensorsChanged(event);
             if (accChanged && gyroChanged ) {
                 Double[] arrayPicklock = getSensorData();
+                changedSensorActivity(arrayPicklock);
 
                 try{
                     double resultpick = WekaClassifierPicklock.classify(arrayPicklock);
@@ -584,14 +585,23 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
         }
     }
 
+    private void changedSensorActivity(Double[] sensordata) {
+        try{
+            classifyData(sensordata);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+    }
+
     private void classifyData(Double[] array) throws Exception {
         double result = WekaClassifierActivities.classify(array);
         activitystable.add(result);
-
+        
         if( activitystable.size() == STABLE_AMOUNT) {
             result = getBestClassifiedActivity();
             String msg;
-            if (result == 0.0) {
+            if (result == 0.0 && lastScannedObject == ObjectType.ROPE.getResource()) {
                 msg = Constants.HEADER_TASK + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + Constants.ACTIVITY_FLAG;
             } else if (result == 1.0) {
                 msg = Constants.HEADER_TASK + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + Constants.ACTIVITY_STILL;
