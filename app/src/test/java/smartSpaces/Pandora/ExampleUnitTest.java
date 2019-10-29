@@ -103,7 +103,7 @@ public class ExampleUnitTest {
         MapObject mobject = new MapObject(object);
 
         assertEquals(object.getResource(), 2);
-        assertEquals(object.getMotionActivityType(), MotionActivityType.PICK_LOCK);
+        assertEquals(object, MotionActivityType.PICK_LOCK.getObjectType());
         assertEquals(object.isHazard(), false);
 
         //add object to the map
@@ -140,6 +140,11 @@ public class ExampleUnitTest {
         assertEquals(null, objectlocationn);
         objectlocation = map.getObjectLocationFromType(object);
         assertEquals(null, objectlocation);
+
+
+        ObjectType object2 = ObjectType.LOCK;
+        assertEquals(object2.getMotionActivityType(), MotionActivityType.PICK_LOCK);
+
     }
 
     @Test

@@ -14,24 +14,26 @@ public enum ObjectType {
     // getter method
     public int getResource()
     {
-        return this.resource;
+        return resource;
     }
 
     public MotionActivityType getMotionActivityType() {
-        return this.motionActivityType;
+        return motionActivityType;
     }
 
     public boolean isHazard() {
         return hazard;
     }
 
-    private ObjectType(int resource, MotionActivityType type, boolean hazard)
+    ObjectType(int resource, MotionActivityType type, boolean hazard)
     {
         this.resource = resource;
         this.motionActivityType = type;
         this.hazard = hazard;
     }
-    private ObjectType(int resource, boolean hazard)
+
+    //never used sadness overloaded
+    ObjectType(int resource, boolean hazard)
     {
         this.resource = resource;
         this.hazard = hazard;
