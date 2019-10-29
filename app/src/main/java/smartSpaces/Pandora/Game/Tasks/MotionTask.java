@@ -46,7 +46,7 @@ public class MotionTask extends Task{
 
     public void buildDescription() {
         String desc = "Shit's broken yo";
-        Log.i("MOTIIONTASK" , motionType.getResource() + "  " + motionType.toString());
+        //Log.i("MOTIIONTASK" , motionType.getResource() + "  " + motionType.toString());
         switch (motionType) {
             case PICK_LOCK:
                 desc = "Pick the lock";

@@ -68,63 +68,63 @@
             android:onClick="goToInstructionExplorer"/>
     </RelativeLayout>
 
-    <RelativeLayout
-        android:id="@+id/modal_start"
-        android:visibility="gone"
-        android:layout_width="300dp"
-        android:layout_height="300dp"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:elevation="10dp"
-        android:background="@color/white"
-        android:padding="30dp">
+<!--    <RelativeLayout-->
+<!--        android:id="@+id/modal_start"-->
+<!--        android:visibility="gone"-->
+<!--        android:layout_width="300dp"-->
+<!--        android:layout_height="300dp"-->
+<!--        android:layout_centerHorizontal="true"-->
+<!--        android:layout_centerVertical="true"-->
+<!--        android:elevation="10dp"-->
+<!--        android:background="@color/white"-->
+<!--        android:padding="30dp">-->
 
-        <TextView
-            android:id="@+id/room_description2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingBottom="10dp"
-            android:text="@string/description_wait"
-            android:fontFamily="@font/gloria_hallelujah"
-            android:textColor="@color/black"/>
+<!--        <TextView-->
+<!--            android:id="@+id/room_description2"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:paddingBottom="10dp"-->
+<!--            android:text="@string/description_wait"-->
+<!--            android:fontFamily="@font/gloria_hallelujah"-->
+<!--            android:textColor="@color/black"/>-->
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/room_description2"
-            android:paddingBottom="15dp">
+<!--        <LinearLayout-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_below="@id/room_description2"-->
+<!--            android:paddingBottom="15dp">-->
 
-            <TextView
-                android:id="@+id/amount_players"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/gloria_hallelujah"
-                android:textColor="@color/black"
-                android:text="0" />
+<!--            <TextView-->
+<!--                android:id="@+id/amount_players"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:fontFamily="@font/gloria_hallelujah"-->
+<!--                android:textColor="@color/black"-->
+<!--                android:text="0" />-->
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/gloria_hallelujah"
-                android:textColor="@color/black"
-                android:text="@string/players_joined" />
+<!--            <TextView-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:fontFamily="@font/gloria_hallelujah"-->
+<!--                android:textColor="@color/black"-->
+<!--                android:text="@string/players_joined" />-->
 
-        </LinearLayout>
+<!--        </LinearLayout>-->
 
-        <Button
-            android:id="@+id/btn_start"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/start_game"
-            android:background="@color/black"
-            android:textColor="@color/white"
-            android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true"
-            android:textSize="25dp"
-            android:padding="10dp"
-            android:enabled="false"
-            android:onClick="startGame"/>
-    </RelativeLayout>
+<!--        <Button-->
+<!--            android:id="@+id/btn_start"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="@string/start_game"-->
+<!--            android:background="@color/black"-->
+<!--            android:textColor="@color/white"-->
+<!--            android:layout_alignParentBottom="true"-->
+<!--            android:layout_centerHorizontal="true"-->
+<!--            android:textSize="25dp"-->
+<!--            android:padding="10dp"-->
+<!--            android:enabled="false"-->
+<!--            android:onClick="startGame"/>-->
+<!--    </RelativeLayout>-->
 
     <RelativeLayout
         android:id="@+id/modal_client_start"

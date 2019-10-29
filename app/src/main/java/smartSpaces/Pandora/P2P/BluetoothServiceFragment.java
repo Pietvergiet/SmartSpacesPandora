@@ -216,6 +216,7 @@ public class BluetoothServiceFragment extends Fragment {
 
         @Override
         public void handleMessage(Message msg) {
+            Log.d(TAG, "handleMessage: Message is received: " + msg);
             switch (msg.what) {
                 case Constants.MESSAGE_WRITE:
                     byte[] writeBuf = (byte[]) msg.obj;
@@ -233,7 +234,6 @@ public class BluetoothServiceFragment extends Fragment {
                     Message readMsg = cHandler.obtainMessage(
                             Constants.MESSAGE_READ, clientId, -1, readMessage);
                     readMsg.sendToTarget();
-                    Log.i(TAG, "Read message: " + readMessage);
                     break;
                 case Constants.NEW_CONNECTION:
                     for (Map.Entry<Integer, BluetoothDevice> bd : myBluetoothService.getConnectedClients().entrySet()) {

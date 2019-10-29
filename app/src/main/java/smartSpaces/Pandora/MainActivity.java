@@ -27,9 +27,6 @@ public class MainActivity extends AppCompatActivity {
 
     private int EXPLORER_ROLE = 1;
     private int COORDINATOR_ROLE = 0;
-    private int role;
-    private HostGameController hController;
-    private ClientGameController cController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,14 +59,6 @@ public class MainActivity extends AppCompatActivity {
         intent.putExtra("role", EXPLORER_ROLE);
         startActivity(intent);
 //        cController = new ClientGameController(newGame, this);
-    }
-
-    public void startGame(View view){
-        if(hController != null) {
-
-        } else if (cController != null) {
-            cController.startGame();
-        }
     }
 
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {

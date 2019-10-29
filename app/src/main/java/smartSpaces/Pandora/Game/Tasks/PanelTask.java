@@ -39,6 +39,7 @@ public class PanelTask extends Task{
             for (Panel p: concurPanels.keySet()) {
                 d.add(p.getVerb() + " the " + p.getObject());
             }
+            //voor de Unit test gaat TextUtils.join fout, maar geen idee waardoor
             super.description = TextUtils.join(",", d);
 
         } else {
