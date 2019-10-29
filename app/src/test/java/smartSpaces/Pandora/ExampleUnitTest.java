@@ -143,7 +143,7 @@ public class ExampleUnitTest {
 
 
         ObjectType object2 = ObjectType.LOCK;
-        assertEquals(object2, MotionActivityType.PICK_LOCK.getObjectType());
+        assertEquals(object2.getMotionActivityType(), MotionActivityType.PICK_LOCK);
 
     }
 
