@@ -155,8 +155,8 @@ public class BluetoothService {
                 BluetoothSocket tmpS = socket;
                 ConnectedThread tmp = new ConnectedThread(tmpS);
                 tmp.start();
-                serverConnections.put(connectionAmount, tmp);
-                serverConnectionIds.put(socket.getRemoteDevice().getAddress(), connectionAmount);
+                serverConnections.put(socket.getRemoteDevice().hashCode(), tmp);
+                serverConnectionIds.put(socket.getRemoteDevice().getAddress(), socket.getRemoteDevice().hashCode());
             }
         } else {
             if (cThread != null) {
@@ -323,7 +323,7 @@ public class BluetoothService {
                         // the connection in a separate thread.
                         startConnection(socket);
                         Message readMsg = handler.obtainMessage(
-                                Constants.NEW_CONNECTION);
+                                Constants.NEW_CONNECTION, socket.getRemoteDevice().hashCode());
                         readMsg.sendToTarget();
                         Log.i(TAG, "New connection with: " + socket.getRemoteDevice().getName());
 //                    manageMyConnectedSocket(socket);

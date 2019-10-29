@@ -229,7 +229,7 @@ public class BluetoothServiceFragment extends Fragment {
                     String clientName = clientId > -1 ? myBluetoothService.getConnectedClients().get(clientId).getName() : myBluetoothService.getHostName();
                     // construct a string from the valid bytes in the buffer
                     String readMessage = new String(readBuf, 0, msg.arg1);
-                    Log.i(TAG, "Read message: " + readMessage);
+                    Log.i(TAG, "ClientID : " + msg.arg2);
                     Message readMsg = cHandler.obtainMessage(
                             Constants.MESSAGE_READ, clientId, -1, readMessage);
                     readMsg.sendToTarget();
@@ -239,11 +239,12 @@ public class BluetoothServiceFragment extends Fragment {
                     for (Map.Entry<Integer, BluetoothDevice> bd : myBluetoothService.getConnectedClients().entrySet()) {
                         clients.put(bd.getKey(), bd.getValue().getName());
                     }
+                    Log.i(TAG, "ID: " + msg.obj);
                     String text = "Connected clients: " + clients.toString();
                     Log.i(TAG, "Displayed connections: " + text);
                     if (isHost) {
                         Message conMessage = cHandler.obtainMessage(
-                                Constants.NEW_CONNECTION, clients.size());
+                                Constants.NEW_CONNECTION, clients.size(), -1, msg.obj);
                         conMessage.sendToTarget();
                     }
                     break;

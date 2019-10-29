@@ -66,7 +66,7 @@ public class CoordinatorGameScreen extends AppCompatActivity {
     private GameHost game;
     private GameMap gameMap;
     private ArrayList<Panel> panels;
-    private Set<Integer> playerIds;
+    private HashSet<Integer> playerIds;
 
     //endregion
 
@@ -90,7 +90,7 @@ public class CoordinatorGameScreen extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_coordinator_game_screen);
         game = new GameHost(30, 4);
-
+        playerIds = new HashSet<>();
         bServiceFragment = new BluetoothServiceFragment(true, hostHandler, this);
         startBluetooth();
 
@@ -177,7 +177,7 @@ public class CoordinatorGameScreen extends AppCompatActivity {
      *
      */
     public void startGame(){
-        playerIds = new HashSet<>(bServiceFragment.getClientIds());
+        playerIds.addAll(bServiceFragment.getClientIds());
         Log.i(TAG, "IDs" + playerIds.toString());
         playerIds.add(HOSTPLAYERID);
         initMap();
@@ -201,7 +201,7 @@ public class CoordinatorGameScreen extends AppCompatActivity {
             public void onTick(long l) {
                 int min = (int) Math.floor((double) Long.valueOf(l / (60*1000)));
                 int sec =(int) (l - (min * 60 * 1000)) / 1000;
-                Log.d(TAG, "onTick: " + min + ":" + sec);
+//                Log.d(TAG, "onTick: " + min + ":" + sec);
 
                 updateTimer(min, sec);
             }
@@ -214,7 +214,7 @@ public class CoordinatorGameScreen extends AppCompatActivity {
         };
 
         timer.start();
-
+        drawMap();
 
 //        setTask("Chase a cart");
     }
@@ -448,6 +448,9 @@ public class CoordinatorGameScreen extends AppCompatActivity {
      * @param task
      */
     public void setTask(String task) {
+        if (task.equals("Dummmy Task")) {
+            Log.i("DUMMYTASK", game.getPlayerTasks().get(game.getPlayer(HOSTPLAYERID)).getTaskType().toString() + " " + game.getPlayerTasks().get(game.getPlayer(HOSTPLAYERID)).getDescription());
+        }
         TextView taskView = findViewById(R.id.task);
         final ProgressBar progressBar = findViewById(R.id.progressBar);
         taskView.setText(task);
@@ -849,24 +852,32 @@ public class CoordinatorGameScreen extends AppCompatActivity {
         switch (msgToParse[0]){
             case Constants.HEADER_TASK:
                 String activity = msgToParse[2];
+                int index;
+                try {
+                    index = Integer.parseInt(msgToParse[2]);
+                } catch (NumberFormatException e ){
+                    index = -15;
+                }
                 if (activity.equals(Constants.TASK_FAILED)) {
                     failTask(playerId);
-                } else if (Integer.getInteger(activity) != null) {
-                    finishMotionTask(MotionActivityType.valueOf(Integer.getInteger(activity)), playerId);
+                } else if (index >= 0){
+                    finishMotionTask(MotionActivityType.valueOf(Integer.parseInt(activity)), playerId);
                 }
                 break;
             case Constants.HEADER_BUTTON:
-                int buttonId = Integer.getInteger(msgToParse[2]);
-                String buttonPressed = msgToParse[3];
-                for (Panel p : panels) {
-                    if (p.getId() == buttonId){
-                        if (buttonPressed.equals(Constants.PRESSED)) {
-                            finishButtonTask(p, playerId);
-                        } else if (buttonPressed.equals(Constants.RELEASED)){
-                            releaseButton(p);
+                Log.i("BUTTONPARSE" , msgToParse[2]);
+                    int buttonId = Integer.parseInt(msgToParse[2]);
+                    String buttonPressed = msgToParse[3];
+                    for (Panel p : panels) {
+                        if (p.getId() == buttonId) {
+                            if (buttonPressed.equals(Constants.PRESSED)) {
+                                finishButtonTask(p, playerId);
+                            } else if (buttonPressed.equals(Constants.RELEASED)) {
+                                releaseButton(p);
+                            }
                         }
                     }
-                }
+
 
                 break;
             case Constants.HEADER_LOCATION:
@@ -899,6 +910,7 @@ public class CoordinatorGameScreen extends AppCompatActivity {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case Constants.MESSAGE_READ:
+                    Log.i(TAG, "CLient id: " + msg.arg1);
                     Log.i(TAG, "Message READ: " + msg.obj);
                     parseMessage((String) msg.obj, msg.arg1);
                     break;
@@ -909,12 +921,13 @@ public class CoordinatorGameScreen extends AppCompatActivity {
                     //Todo activity dinges
                     break;
                 case Constants.NEW_CONNECTION:
-                    Log.i(TAG, "NEW CONNECTION");
+                    Log.i(TAG, "NEW CONNECTION : " + msg.obj.toString());
                     //The view mainactivity view is edited to show the amount of joined players
-                    ((TextView)(findViewById(R.id.amount_players))).setText(String.valueOf(msg.obj));
+                    ((TextView)(findViewById(R.id.amount_players))).setText(String.valueOf(msg.arg1));
                     findViewById(R.id.btn_start).setEnabled(true);
+                    playerIds.add((Integer)msg.obj);
                     //For every new connection a player is added to the game.
-                    game.setPlayerAmount((Integer) msg.obj);
+                    game.setPlayerAmount((Integer) msg.arg1);
                     break;
             }
         }

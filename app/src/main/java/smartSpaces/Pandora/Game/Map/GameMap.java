@@ -1,5 +1,7 @@
 package smartSpaces.Pandora.Game.Map;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,6 +35,8 @@ public class GameMap {
      * @param dim The amount of rows and columns
      */
     public GameMap (int dim) {
+        xDim = dim;
+        yDim = dim;
         mapGrid = new boolean[dim][dim];
         objects = new HashMap<>();
         players = new HashMap<>();
@@ -145,6 +149,7 @@ public class GameMap {
                 }
             }
         }
+//        Log.i("INVISIBLE MAP", invisibleList.toString());
         return invisibleList;
     }
 
