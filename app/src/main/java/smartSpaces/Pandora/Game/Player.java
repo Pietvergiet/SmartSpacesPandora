@@ -63,4 +63,12 @@ public class Player {
     public void setTask(Task task) {
         displayTask = task;
     }
+
+    public Task getTask(){
+        return displayTask;
+    }
+
+    public boolean getHasMap(){
+        return hasMap;
+    }
 }
