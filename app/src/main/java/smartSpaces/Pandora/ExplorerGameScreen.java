@@ -45,6 +45,7 @@ import smartSpaces.Pandora.Game.GameClient;
 import smartSpaces.Pandora.Game.Map.ObjectType;
 import smartSpaces.Pandora.Game.Panel;
 import smartSpaces.Pandora.Game.Player;
+import smartSpaces.Pandora.Game.Tasks.MotionActivityType;
 import smartSpaces.Pandora.P2P.BluetoothServiceFragment;
 import smartSpaces.Pandora.P2P.Constants;
 import smartSpaces.Pandora.Picklock.R;
@@ -405,11 +406,11 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
                 Log.d(TAG, "onTouch: Button clicked");
-                if (motionEvent.getAction() == MotionEvent.ACTION_BUTTON_PRESS) {
+                if (motionEvent.getAction() == MotionEvent.ACTION_MOVE) {
                     Log.d(TAG, "onTouch: Button pressed");
                     String msg = Constants.HEADER_BUTTON + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + panels[0].getId() + Constants.MESSAGE_SEPARATOR + Constants.PRESSED;
                     fragment.sendMessage(msg);
-                } else if (motionEvent.getAction() == MotionEvent.ACTION_BUTTON_RELEASE) {
+                } else if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
                     Log.d(TAG, "onTouch: Button released");
                     String msg = Constants.HEADER_BUTTON + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + panels[0].getId() + Constants.MESSAGE_SEPARATOR + Constants.RELEASED;
                     fragment.sendMessage(msg);
@@ -421,10 +422,10 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
         btn2.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
-                if (motionEvent.getAction() == MotionEvent.ACTION_BUTTON_PRESS) {
+                if (motionEvent.getAction() == MotionEvent.ACTION_MOVE) {
                     String msg = Constants.HEADER_BUTTON + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + panels[1].getId() + Constants.MESSAGE_SEPARATOR + Constants.PRESSED;
                     fragment.sendMessage(msg);
-                } else if (motionEvent.getAction() == MotionEvent.ACTION_BUTTON_RELEASE) {
+                } else if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
                     String msg = Constants.HEADER_BUTTON + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + panels[1].getId() + Constants.MESSAGE_SEPARATOR + Constants.RELEASED;
                     fragment.sendMessage(msg);
                 }
@@ -435,10 +436,10 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
         btn3.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
-                if (motionEvent.getAction() == MotionEvent.ACTION_BUTTON_PRESS) {
+                if (motionEvent.getAction() == MotionEvent.ACTION_MOVE) {
                     String msg = Constants.HEADER_BUTTON + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + panels[2].getId() + Constants.MESSAGE_SEPARATOR + Constants.PRESSED;
                     fragment.sendMessage(msg);
-                } else if (motionEvent.getAction() == MotionEvent.ACTION_BUTTON_RELEASE) {
+                } else if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
                     String msg = Constants.HEADER_BUTTON + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + panels[2].getId() + Constants.MESSAGE_SEPARATOR + Constants.RELEASED;
                     fragment.sendMessage(msg);
                 }
@@ -449,10 +450,10 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
         btn4.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
-                if (motionEvent.getAction() == MotionEvent.ACTION_BUTTON_PRESS) {
+                if (motionEvent.getAction() == MotionEvent.ACTION_MOVE) {
                     String msg = Constants.HEADER_BUTTON + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + panels[3].getId() + Constants.MESSAGE_SEPARATOR + Constants.PRESSED;
                     fragment.sendMessage(msg);
-                } else if (motionEvent.getAction() == MotionEvent.ACTION_BUTTON_RELEASE) {
+                } else if (motionEvent.getAction() == MotionEvent.ACTION_UP) {
                     String msg = Constants.HEADER_BUTTON + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + panels[3].getId() + Constants.MESSAGE_SEPARATOR + Constants.RELEASED;
                     fragment.sendMessage(msg);
                 }
@@ -614,13 +615,13 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
             result = getBestClassifiedActivity();
             String msg;
             if (result == 0.0 && lastScannedObject == ObjectType.ROPE.getResource()) {
-                msg = Constants.HEADER_TASK + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + Constants.ACTIVITY_FLAG;
+                msg = Constants.HEADER_TASK + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + MotionActivityType.RAISE_FLAG.getResource();
             } else if (result == 1.0) {
-                msg = Constants.HEADER_TASK + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + Constants.ACTIVITY_STILL;
+                msg = Constants.HEADER_TASK + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + MotionActivityType.HOLD_IN_PLACE.getResource();
             } else if (result == 2.0) {
-                msg = Constants.HEADER_TASK + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + Constants.ACTIVITY_SHAKE;
+                msg = Constants.HEADER_TASK + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + MotionActivityType.SHAKE_PHONE.getResource();
             } else if (result == 3.0) {
-                msg = Constants.HEADER_TASK + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + Constants.ACTIVITY_PIROUETTE;
+                msg = Constants.HEADER_TASK + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + MotionActivityType.PIROUETTE.getResource();
             } else {
                 return;
             }
@@ -704,7 +705,7 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
             if (picklock.size() != 0) {
                 activity = picklock.get(0).toString();
             } else {
-                String msg = Constants.HEADER_TASK + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + Constants.ACTIVITY_LOCKPICKING;
+                String msg = Constants.HEADER_TASK + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + MotionActivityType.PICK_LOCK.getResource();
                 fragment.sendMessage(msg);
                 lockpickbool = false;
                 done = true;
