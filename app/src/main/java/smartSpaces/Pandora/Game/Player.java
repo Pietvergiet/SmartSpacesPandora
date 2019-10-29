@@ -1,5 +1,7 @@
 package smartSpaces.Pandora.Game;
 
+import android.util.Log;
+
 import smartSpaces.Pandora.Game.Tasks.Task;
 
 public class Player {
@@ -35,9 +37,7 @@ public class Player {
     }
 
     public void setPanels(Panel[] p) {
-        if (p.length == panels.length) {
-            panels = p;
-        }
+        panels = p;
     }
 
 
