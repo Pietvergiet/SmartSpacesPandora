@@ -1,5 +1,8 @@
 package smartSpaces.Pandora.Game.Map;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import smartSpaces.Pandora.Game.Tasks.MotionActivityType;
 
 public enum ObjectType {
@@ -8,17 +11,28 @@ public enum ObjectType {
     LOCK(2, MotionActivityType.PICK_LOCK, false);
 
     private int resource;
-    private MotionActivityType motionActivityType;
+    private MotionActivityType motionType;
     private boolean hazard;
+    private static Map map = new HashMap<>();
+
+    static {
+        for (ObjectType pageType : ObjectType.values()) {
+            map.put(pageType.resource, pageType);
+        }
+    }
+
+    public MotionActivityType getMotionActivityType() {
+        return motionType;
+    }
+
+    public static ObjectType valueOf(int pageType) {
+        return (ObjectType) map.get(pageType);
+    }
 
     // getter method
     public int getResource()
     {
         return resource;
-    }
-
-    public MotionActivityType getMotionActivityType() {
-        return motionActivityType;
     }
 
     public boolean isHazard() {
@@ -28,7 +42,7 @@ public enum ObjectType {
     ObjectType(int resource, MotionActivityType type, boolean hazard)
     {
         this.resource = resource;
-        this.motionActivityType = type;
+        this.motionType = type;
         this.hazard = hazard;
     }
 
