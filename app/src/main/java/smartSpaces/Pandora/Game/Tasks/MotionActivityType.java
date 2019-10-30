@@ -7,13 +7,13 @@ import smartSpaces.Pandora.Game.Map.ObjectType;
 
 public enum MotionActivityType {
 
-    PICK_LOCK(1, ObjectType.LOCK),
-    RAISE_FLAG(2, ObjectType.ROPE),
-    PIROUETTE(3, ObjectType.ROPE),
-    HOLD_IN_PLACE(4, ObjectType.ROPE),
-    SHAKE_PHONE(5, ObjectType.ROPE);
+    PICK_LOCK(-1, ObjectType.LOCK),
+    RAISE_FLAG(0, ObjectType.ROPE),
+    PIROUETTE(3),
+    HOLD_IN_PLACE(1),
+    SHAKE_PHONE(2);
 
-    private ObjectType objectType;
+    private ObjectType objectType = null;
     private int resource;
     private static Map map = new HashMap<>();
 
@@ -37,6 +37,10 @@ public enum MotionActivityType {
 
     MotionActivityType(int resource, ObjectType type) {
         this.objectType = type;
+        this.resource = resource;
+    }
+
+    MotionActivityType(int resource) {
         this.resource = resource;
     }
 }

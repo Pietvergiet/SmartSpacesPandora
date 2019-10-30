@@ -62,7 +62,7 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
     public int lastScannedObject;
 
     // UI stuff
-    public long TASKTIME = 30 * 1000;
+    public long TASKTIME = 300000 * 1000;
     public long TASKTIME_INTERVAL = 100;
     public long N_PANELS = 4;
     private int EXPLORER_ROLE = 1;
@@ -703,6 +703,7 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
         if (ACTIVITY_RECOGNITION_LENGTH < time) {
             picklock.remove(0);
             Vibrate();
+            Log.i("LOCKPICK", picklock.toString());
             if (picklock.size() != 0) {
                 activity = picklock.get(0).toString();
             } else {

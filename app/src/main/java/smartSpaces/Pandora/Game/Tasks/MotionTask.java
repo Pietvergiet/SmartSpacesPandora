@@ -66,6 +66,9 @@ public class MotionTask extends Task{
                 break;
             case SHAKE_PHONE:
                 desc = "Shake phones";
+                break;
+            default:
+                desc = "Uncaught MotionActivity Task" + motionType.toString();
         }
         super.description = desc;
     }

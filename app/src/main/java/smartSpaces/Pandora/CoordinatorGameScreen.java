@@ -13,11 +13,18 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.nfc.NfcAdapter;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Message;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseArray;
@@ -45,6 +52,8 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
+import smartSpaces.Pandora.Game.Activities.WekaClassifierActivities;
+import smartSpaces.Pandora.Game.Activities.WekaClassifierPicklock;
 import smartSpaces.Pandora.Game.GameHost;
 import smartSpaces.Pandora.Game.Map.GameMap;
 import smartSpaces.Pandora.Game.Map.MapObject;
@@ -61,7 +70,7 @@ import smartSpaces.Pandora.P2P.BluetoothServiceFragment;
 import smartSpaces.Pandora.P2P.Constants;
 import smartSpaces.Pandora.Picklock.R;
 
-public class CoordinatorGameScreen extends AppCompatActivity {
+public class CoordinatorGameScreen extends AppCompatActivity implements SensorEventListener {
     //Todo appropriate loggin for each method
     //todo javadocs
     //region Game variables
@@ -72,14 +81,19 @@ public class CoordinatorGameScreen extends AppCompatActivity {
     private GameMap gameMap;
     private ArrayList<Panel> panels;
     private HashSet<Integer> playerIds;
-
+    private HashMap<Location, CountDownTimer> mapTiles;
+    private HashMap<MotionActivityType, Integer> concurActivityies;
+    private HashMap<MotionActivityType, CountDownTimer> concurActivityiesTimers;
+    public int lastScannedObject;
     //endregion
 
     //region View variables
     private long GAMETIME = 10 * 60 * 1000;
-    private long TASKTIME = 30 * 1000;
+    private long TASKTIME = 3000 * 1000;
     private long GAMETIME_INTERVAL = 1000;
     private long TASKTIME_INTERVAL = 100;
+    private long MAPTILE_VISIBLE = 2 * 60 * 1000;
+    private long CONCUR_ACTIVITY_TIME = 5 * 1000;
     private long MAPBLOCKS = 5;
     private int COORDINATOR_ROLE = 0;
     private String TAG = "Coordinator ";
@@ -99,12 +113,50 @@ public class CoordinatorGameScreen extends AppCompatActivity {
     public String coords = "";
     NFCReader reader = new NFCReader();
 
+    //Activity Recognition meuk
+    int STABLE_AMOUNT = 9;
+    double maxValue;
+    double maxCount;
+    private boolean accChanged, gyroChanged, magnetoChanged;
+    List<Double> activitystable = new ArrayList<>();
+    private SensorManager sensorManager;
+    private Sensor accelerometer, gyroscope;
+    private double accXValue, accYValue, accZValue;
+    private double gyroXvalue, gyroYValue, gyroZValue;
+    private boolean gameStart = false;
+
+
+    //ALL VARIABLES FOR PICKLOCK
+    int elapsedTime;
+    long startTime;
+    int flatTime = 0;
+    int rightTime = 0;
+    int middleTime = 0;
+    int downTime = 0;
+    int leftTime = 0;
+    int ACTIVITY_RECOGNITION_LENGTH = 5;
+    String activity;
+    List picklock = new ArrayList();
+    List<Double> picklockstable = new ArrayList<>();
+    boolean lockpickbool = false;
+    boolean done = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_coordinator_game_screen);
+        setContentView(R.layout.coordinator_wait_screen);
+
+        TextView start = findViewById(R.id.btn_start);
+        Typeface horrorFont = Typeface.createFromAsset(getAssets(), "buried-before.before-bb.ttf");
+        start.setTypeface(horrorFont);
+//        showPlayersJoined(0);
+        ((TextView) findViewById(R.id.amount_players)).setText("0");
+
         game = new GameHost(30, 4);
         playerIds = new HashSet<>();
+        mapTiles = new HashMap<>();
+        concurActivityies = new HashMap<>();
+        concurActivityiesTimers = new HashMap<>();
         bServiceFragment = new BluetoothServiceFragment(true, hostHandler, this);
         startBluetooth();
 
@@ -120,10 +172,20 @@ public class CoordinatorGameScreen extends AppCompatActivity {
         IntentFilter tagDetected = new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED);
         tagDetected.addCategory(Intent.CATEGORY_DEFAULT);
 
+        //SENSORS
+        //magnetometer could be uncommented if it wants to be used
+        sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
+        gyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
+        //magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        sensorManager.registerListener(this, accelerometer, sensorManager.SENSOR_DELAY_GAME);
+        sensorManager.registerListener(this, gyroscope, sensorManager.SENSOR_DELAY_GAME);
+        //sensorManager.registerListener(this, magnetometer, sensorManager.SENSOR_DELAY_NORMAL);
+
 
         game.addPlayer(new Player(HOSTPLAYERID, true));
 
-        setUp();
+
     }
 
     //region Starters
@@ -134,16 +196,13 @@ public class CoordinatorGameScreen extends AppCompatActivity {
         transaction.commit();
     }
 
-    private void setUp(){
+    private void setUp() {
         // setting typefaces (ugly but cannot be done in XML :/
         TextView task = findViewById(R.id.task);
-        TextView start = findViewById(R.id.btn_start);
 
         Typeface pixelFont = Typeface.createFromAsset(getAssets(), "Fipps-Regular.otf");
-        Typeface horrorFont = Typeface.createFromAsset(getAssets(), "buried-before.before-bb.ttf");
 
         task.setTypeface(pixelFont);
-        start.setTypeface(horrorFont);
 
         // compute screenwidth;
         Display display = getWindowManager().getDefaultDisplay();
@@ -164,49 +223,21 @@ public class CoordinatorGameScreen extends AppCompatActivity {
         map.setImageBitmap(scaledbm);
         Log.d(TAG, "onCreate: Map filled");
 
-        // hide map
-//        hideMap(0, 0);
-//        hideMap(0, 1);
-//        hideMap(0, 2);
-//        hideMap(0, 3);
-//        hideMap(0, 4);
-//        hideMap(1, 0);
-//        hideMap(1, 1);
-//        hideMap(1, 2);
-//        hideMap(1, 3);
-//        hideMap(1, 4);
-//        hideMap(2, 0);
-//        hideMap(2, 1);
-//        hideMap(2, 2);
-//        hideMap(2, 3);
-//        hideMap(2, 4);
-//        hideMap(3, 0);
-//        hideMap(3, 1);
-//        hideMap(3, 2);
-//        hideMap(3, 3);
-//        hideMap(3, 4);
-//        hideMap(4, 0);
-//        hideMap(4, 1);
-//        hideMap(4, 2);
-//        hideMap(4, 3);
-//        hideMap(4, 4);
-//
-//        showMap(3,4);
-//        showMap(1,1);
-
-//        drawObjectOnMap(R.drawable.flag, new Location(3,3));
-//        drawObjectOnMap(R.drawable.safe, new Location(1,2));
-//        drawObjectOnMap(R.drawable.bomb, new Location(0,4));
     }
 
     /**
      *
      */
-    public void startGame(){
+    public void startGame() {
         playerIds.addAll(bServiceFragment.getClientIds());
         Log.i(TAG, "IDs" + playerIds.toString());
         playerIds.add(HOSTPLAYERID);
+
+
         initMap();
+        // Demo test stuff
+        gameMap.addObject(new MapObject(ObjectType.LOCK), new Location(0, 0));
+
         initButtons();
         initPlayers();
         initTasks();
@@ -214,19 +245,22 @@ public class CoordinatorGameScreen extends AppCompatActivity {
 
     /**
      * The onClick method that starts the game
+     *
      * @param view
      */
     public void startView(View view) {
+        findViewById(R.id.modal_start).setVisibility(View.GONE);
+        setContentView(R.layout.activity_coordinator_game_screen);
+
+        setUp();
         startGame();
         sendGameStart();
-        RelativeLayout modal = findViewById(R.id.modal_start);
-        modal.setVisibility(View.GONE);
 
         timer = new CountDownTimer(GAMETIME, GAMETIME_INTERVAL) {
             @Override
             public void onTick(long l) {
-                int min = (int) Math.floor((double) Long.valueOf(l / (60*1000)));
-                int sec =(int) (l - (min * 60 * 1000)) / 1000;
+                int min = (int) Math.floor((double) Long.valueOf(l / (60 * 1000)));
+                int sec = (int) (l - (min * 60 * 1000)) / 1000;
 //                Log.d(TAG, "onTick: " + min + ":" + sec);
 
                 updateTimer(min, sec);
@@ -241,13 +275,14 @@ public class CoordinatorGameScreen extends AppCompatActivity {
 
         timer.start();
         drawMap();
+        gameStart = true;
 
 //        setTask("Chase a cart");
     }
     //endregion
 
     //region Initialisers
-    private void initButtons(){
+    private void initButtons() {
         panels = new ArrayList<>();
         int buttonAmount = game.getTotalPanelAmount();
         Panel tmpPanel = new Panel(-1);
@@ -255,7 +290,7 @@ public class CoordinatorGameScreen extends AppCompatActivity {
         ArrayList<String> objects = new ArrayList<>(Arrays.asList(tmpPanel.getOBJECTS()));
         Random r = new Random();
         for (int i = 0; i < buttonAmount; i++) {
-            int vInt = r.nextInt(buttonAmount-i);
+            int vInt = r.nextInt(buttonAmount - i);
             String verb = verbs.get(vInt);
             verbs.remove(verb);
             vInt = r.nextInt(buttonAmount - i);
@@ -265,7 +300,7 @@ public class CoordinatorGameScreen extends AppCompatActivity {
         }
     }
 
-    private void initMap(){
+    private void initMap() {
         gameMap = new GameMap(MAPDIM);
 
         for (ObjectType ot : ObjectType.values()) {
@@ -276,6 +311,7 @@ public class CoordinatorGameScreen extends AppCompatActivity {
             gameMap.addObject(new MapObject(ot), rLoc);
         }
         Log.i("INITGAMEMAP", gameMap.getObjects().toString());
+//        gameMap.addObject(new MapObject(ObjectType.BOMB), new Location(0, 0));
         drawMap();
     }
 
@@ -292,41 +328,25 @@ public class CoordinatorGameScreen extends AppCompatActivity {
                 game.addPlayer(new Player(id, false, p.toArray(new Panel[0])));
                 Log.i("INITPLAYER", id + "");
                 sendPlayerPanels(id);
+                startId += game.getPanelsPerPlayer();
             }
         }
     }
 
-    private void initTasks(){
-        taskTimer = new CountDownTimer(TASKTIME, TASKTIME_INTERVAL) {
-            final ProgressBar progressBar = findViewById(R.id.progressBar);
-            /**
-             * For every tick update the progressbar
-             */
-            @Override
-            public void onTick(long l) {
-                int progress = (int) Math.round((((double) Long.valueOf(l)) / TASKTIME) * 100);
-                progressBar.setProgress(progress);
-            }
+    private void initTasks() {
 
-            /**
-             * When task timer is finished, show completed or fail
-             */
-            @Override
-            public void onFinish() {
-                Log.d(TAG, "onFinish: TIME OUT! TASK FAILED...");
-
-//                taskCompleted();
-                taskFailed();
-//                setTask("Do a pirouette");
-            }
-        };
-        for(int id : playerIds) {
+        for (int id : playerIds) {
             Task task = randomTaskForPlayer(id);
             game.newTask(game.getPlayer(id), task);
             if (id != HOSTPLAYERID) {
-
+                //Demotask
+                game.newTask(game.getPlayer(id), new MotionTask(MotionActivityType.PICK_LOCK));
+                //Demotask
                 sendNewTask(id);
             } else {
+                // Demotask
+                game.newTask(game.getPlayer(id), new MotionTask(MotionActivityType.PICK_LOCK));
+                //Demotask
                 setTask(task.getDescription());
             }
         }
@@ -351,8 +371,8 @@ public class CoordinatorGameScreen extends AppCompatActivity {
                 break;
             case PANEL_CONCURRENT:
                 ArrayList<Panel> list = new ArrayList<>();
-                for (int i : playerIds){
-                    Log.i("PANEL CONCURRENT", game.getPlayer(i).getPanels().length + "   " + game.getPanelsPerPlayer() );
+                for (int i : playerIds) {
+                    Log.i("PANEL CONCURRENT", game.getPlayer(i).getPanels().length + "   " + game.getPanelsPerPlayer());
                     if (i != HOSTPLAYERID) {
                         list.add(game.getPlayer(i).getPanels()[r.nextInt(game.getPanelsPerPlayer())]);
                     }
@@ -360,17 +380,17 @@ public class CoordinatorGameScreen extends AppCompatActivity {
                 task = new PanelTask(list);
                 break;
             case MOTION:
-                MotionActivityType gtype = randomMotionActivityType();
+                MotionActivityType gtype = randomMotionActivityType(false);
                 Log.i("MOTIonTTYPER", gtype.toString());
                 task = new MotionTask(gtype);
                 break;
             case MOTION_LOCATION:
-                MotionActivityType type = randomMotionActivityType();
+                MotionActivityType type = randomMotionActivityType(true);
                 Log.i("MOTIonTTYPER0 LOCATION", type.toString());
                 task = new MotionTask(type, randomMapObject());
                 break;
             case MOTION_CONCURRENT:
-                MotionActivityType rtype = randomMotionActivityType();
+                MotionActivityType rtype = randomMotionActivityType(false);
                 Log.i("MOTIonTTYP CONCURRETN", rtype.toString());
                 task = new MotionTask(rtype, true);
                 break;
@@ -382,24 +402,40 @@ public class CoordinatorGameScreen extends AppCompatActivity {
                 Log.i("LOCATIONCONCURRENT", gameMap.getObjects().toString());
                 Log.i("PLAYERAMOUNT", game.getPlayerAmount() + " ");
                 int locationAmount = game.getPlayerAmount() > gameMap.getObjects().size() ? gameMap.getObjects().size() : game.getPlayerAmount();
-                while(objects.size() < locationAmount) {
+                while (objects.size() < locationAmount) {
                     objects.add(randomMapObject());
                 }
                 Log.i("LOCATIONCONCURRENT", objects.toString() + "  " + locationAmount);
-                task =  new LocationTask(new ArrayList<>(objects));
+                task = new LocationTask(new ArrayList<>(objects));
                 break;
         }
         return task;
     }
 
-    private MotionActivityType randomMotionActivityType(){
+    private MotionActivityType randomMotionActivityType(boolean isMapObject) {
         Random r = new Random();
-        ArrayList<MapObject> objects = gameMap.getObjects();
-        Log.i("RANDOMMOTIN", objects.toString());
-        Log.i("RANodMMOTi", objects.get(0).getObjectType().toString());
-        Log.i("RANODMMOIT", objects.get(0).getObjectType().getMotionActivityType().toString());
-        int index = r.nextInt(objects.size());
-        MotionActivityType result = objects.get(index).getObjectType().getMotionActivityType();
+        MotionActivityType result;
+        int index;
+        if (isMapObject) {
+            ArrayList<MapObject> objects = gameMap.getObjects();
+            Log.i("RANDOMMOTIN", objects.size() + "");
+//        Log.i("RANodMMOTi", objects.get(0).getObjectType().toString());
+//        Log.i("RANODMMOIT", objects.get(0).getObjectType().getMotionActivityType().toString());
+
+            index = r.nextInt(objects.size());
+            Log.i("RANDOMMOTIN", objects.get(index).getObjectType().toString());
+            while (objects.get(index).getObjectType().isHazard()) {
+                index = r.nextInt(objects.size());
+            }
+            result = objects.get(index).getObjectType().getMotionActivityType();
+        } else {
+            index = r.nextInt(MotionActivityType.values().length);
+            while (MotionActivityType.values()[index].getObjectType() != null){
+                r.nextInt(MotionActivityType.values().length);
+            }
+            result = MotionActivityType.values()[index];
+        }
+
         Log.i("MOTINEONDGD", index + " : " + result.toString());
         return result;
 //        ArrayList<MotionActivityType> activities = new ArrayList<>();
@@ -412,10 +448,11 @@ public class CoordinatorGameScreen extends AppCompatActivity {
     private TaskType getRandomTaskType(int playerId) {
         Random r = new Random();
         if (game.getPlayerAmount() <= 2 && playerId != HOSTPLAYERID) {
-            return TaskType.MOTION;
-        } else if (playerId == HOSTPLAYERID){
-            return TaskType.PANEL;
+            return r.nextInt(2) == 1 ? TaskType.MOTION : TaskType.LOCATION;
         }
+//        else if (playerId == HOSTPLAYERID){
+//            return TaskType.PANEL;
+//        }
         return TaskType.values()[r.nextInt(TaskType.values().length)];
     }
 
@@ -439,6 +476,7 @@ public class CoordinatorGameScreen extends AppCompatActivity {
 
     /**
      * Updates the game timer (microwave view)
+     *
      * @param min
      * @param sec
      */
@@ -447,10 +485,10 @@ public class CoordinatorGameScreen extends AppCompatActivity {
         ImageView timeMS = findViewById(R.id.time_ms);
         ImageView timeSF = findViewById(R.id.time_sf);
         ImageView timeSS = findViewById(R.id.time_ss);
-        int minf = (int) Math.floor(min/10);
+        int minf = (int) Math.floor(min / 10);
         int mins = min - minf;
-        int secf = (int) Math.floor(sec/10);
-        int secs = sec - (secf*10);
+        int secf = (int) Math.floor(sec / 10);
+        int secs = sec - (secf * 10);
 
         setTimerImage(timeMF, minf);
         setTimerImage(timeMS, mins);
@@ -460,6 +498,7 @@ public class CoordinatorGameScreen extends AppCompatActivity {
 
     /**
      * Converts a number to an image, and sets that image as timer image
+     *
      * @param view
      * @param num
      */
@@ -500,6 +539,7 @@ public class CoordinatorGameScreen extends AppCompatActivity {
 
     /**
      * Set a new task, start task timer
+     *
      * @param task
      */
     public void setTask(String task) {
@@ -510,8 +550,34 @@ public class CoordinatorGameScreen extends AppCompatActivity {
 
         taskView.setText(task);
 
+        if (taskTimer != null) {
+            taskTimer.cancel();
+        }
+        taskTimer = new CountDownTimer(TASKTIME, TASKTIME_INTERVAL) {
+            final ProgressBar progressBar = findViewById(R.id.progressBar);
 
+            /**
+             * For every tick update the progressbar
+             */
+            @Override
+            public void onTick(long l) {
+                int progress = (int) Math.round((((double) Long.valueOf(l)) / TASKTIME) * 100);
+                progressBar.setProgress(progress);
+            }
 
+            /**
+             * When task timer is finished, show completed or fail
+             */
+            @Override
+            public void onFinish() {
+                Log.d(TAG, "onFinish: TIME OUT! TASK FAILED...");
+
+//                taskCompleted();
+                taskFailed();
+                newTask(HOSTPLAYERID);
+//                setTask("Do a pirouette");
+            }
+        };
         taskTimer.start();
     }
 
@@ -543,15 +609,17 @@ public class CoordinatorGameScreen extends AppCompatActivity {
 
     /**
      * Function for animating fade out of image
+     *
      * @param image
      */
     public void fadeOutImage(final ImageView image) {
-        Animation aniFade = AnimationUtils.loadAnimation(getApplicationContext(),R.anim.fadeout);
+        Animation aniFade = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fadeout);
         image.startAnimation(aniFade);
 
         aniFade.setAnimationListener(new Animation.AnimationListener() {
             @Override
-            public void onAnimationStart(Animation animation) {}
+            public void onAnimationStart(Animation animation) {
+            }
 
             @Override
             public void onAnimationEnd(Animation animation) {
@@ -559,12 +627,14 @@ public class CoordinatorGameScreen extends AppCompatActivity {
             }
 
             @Override
-            public void onAnimationRepeat(Animation animation) {}
+            public void onAnimationRepeat(Animation animation) {
+            }
         });
     }
 
     /**
      * Hide a certain block of the map
+     *
      * @param location
      */
     public void hideMap(Location location) { // matrix from 0-4 0-4
@@ -593,7 +663,7 @@ public class CoordinatorGameScreen extends AppCompatActivity {
         p.setColor(Color.BLACK);
         tempCanvas.drawBitmap(scaledbm, 0, 0, null);
 
-        for (int i = 0; i < gameMap.getInvisibleList().size(); i ++) {
+        for (int i = 0; i < gameMap.getInvisibleList().size(); i++) {
             Location block = gameMap.getInvisibleList().get(i);
 
             float left = (float) (block.getX() * stepsize);
@@ -607,14 +677,14 @@ public class CoordinatorGameScreen extends AppCompatActivity {
         map.setImageDrawable(new BitmapDrawable(getResources(), mutableBM));
     }
 
-    public void drawObjectOnMap(int resId, Location location){      // where location is top left corner of image
+    public void drawObjectOnMap(int resId, Location location) {      // where location is top left corner of image
         /**
          *         possible drawables:
          *         - safe
          *         - flag
          *         -
          *
-          */
+         */
 
         int stepsize = Math.round(screenWidth / MAPBLOCKS);
         int left = location.getX() * stepsize;
@@ -633,6 +703,7 @@ public class CoordinatorGameScreen extends AppCompatActivity {
 
     /**
      * Adapts UI in how many players joined
+     *
      * @param n
      */
     public void showPlayersJoined(int n) {
@@ -666,7 +737,7 @@ public class CoordinatorGameScreen extends AppCompatActivity {
         bServiceFragment.sendMessage(Constants.HEADER_END + Constants.MESSAGE_SEPARATOR + winOrLose);
     }
 
-    private void sendNewTask(int playerId){
+    private void sendNewTask(int playerId) {
         ArrayList<String> message = new ArrayList<>();
         message.add(Constants.HEADER_TASK);
         Log.i("SENDNEWTASK", playerId + "  " + game.getPlayerTasks().toString());
@@ -684,7 +755,7 @@ public class CoordinatorGameScreen extends AppCompatActivity {
         bServiceFragment.sendMessage(out, playerId);
     }
 
-    private void sendPlayerPanels(int playerId){
+    private void sendPlayerPanels(int playerId) {
         ArrayList<String> message = new ArrayList<>();
         Panel[] panels = game.getPlayer(playerId).getPanels();
         message.add(Constants.HEADER_BUTTON);
@@ -703,7 +774,7 @@ public class CoordinatorGameScreen extends AppCompatActivity {
         bServiceFragment.sendMessage(out, playerId);
     }
 
-    private void sendHazardTriggered(MapObject hazard, int playerId){
+    private void sendHazardTriggered(MapObject hazard, int playerId) {
         ArrayList<String> message = new ArrayList<>();
         message.add(Constants.HEADER_HAZARD);
         message.add(String.valueOf(hazard.getResource()));
@@ -718,12 +789,14 @@ public class CoordinatorGameScreen extends AppCompatActivity {
 
     /**
      * Sends a new task to specific player.
+     *
      * @param playerId
      */
-    private void newTask(int playerId){
+    private void newTask(int playerId) {
         //Set new task for that player
         Task nTask = randomTaskForPlayer(playerId);
         game.newTask(game.getPlayer(playerId), nTask);
+
         if (game.gameFinished()) {
             endGame(true);
         }
@@ -733,10 +806,13 @@ public class CoordinatorGameScreen extends AppCompatActivity {
         } else {
             sendNewTask(playerId);
         }
+//        ((TextView) findViewById(R.id.tasks_left)).setText(game.getTasksLeft());
+//        ((TextView) findViewById(R.id.tasks_completed)).setText(game.getTasksComplete());
+
     }
 
-    private void endGame(boolean gameWon){
-        if(gameWon){
+    private void endGame(boolean gameWon) {
+        if (gameWon) {
             timer.cancel();
             sendGameEnd(Constants.WIN);
             goToWin();
@@ -748,25 +824,40 @@ public class CoordinatorGameScreen extends AppCompatActivity {
 
     /**
      * Checks if the motionActivity is part of a task and finished that task, completes it, and sets a new one.
+     *
      * @param task
      * @param playerId
      * @return
      */
     private void finishMotionTask(MotionActivityType task, int playerId) {
         //todo cuncurrent check and concurrent allez
+        setConcurPlayerTasks(task);
         HashMap<Player, Task> pTasks = new HashMap<>(game.getPlayerTasks());
         //Remove task assigned to the player which completed task
         pTasks.remove(game.getPlayer(playerId));
         //Find which player the completed task belonged to
         for (Map.Entry<Player, Task> pt : pTasks.entrySet()) {
-            if (playerId != pt.getKey().getId() &&
-                    pt.getValue() instanceof MotionTask &&
-                    ((MotionTask) pt.getValue()).getMotionType() == task) {
-                game.completeTask();
-                newTask(pt.getKey().getId());
+            if (playerId != pt.getKey().getId() && pt.getValue() instanceof MotionTask) {
+                if (pt.getValue().isConcurrent() && concurActivityies.containsKey(task)) {
+                    if(concurActivityies.get(task) == game.getPlayerAmount()) {
+                        game.completeTask();
+                        newTask(pt.getKey().getId());
 
-                if (pt.getKey().getId() == HOSTPLAYERID) {
-                    taskCompleted();
+                        if (pt.getKey().getId() == HOSTPLAYERID) {
+                            taskCompleted();
+                        }
+                        Log.i("MOTINOFINISJ", "FINIS");
+                    }
+                } else {
+                    if (((MotionTask) pt.getValue()).getMotionType() == task) {
+                        game.completeTask();
+                        newTask(pt.getKey().getId());
+                        Log.i("MOTINOFINISJ", "FINISjh");
+                        if (pt.getKey().getId() == HOSTPLAYERID) {
+                            taskCompleted();
+                            Log.i("MOTINOFINISJ", "FINI HOSTS");
+                        }
+                    }
                 }
             }
         }
@@ -774,19 +865,20 @@ public class CoordinatorGameScreen extends AppCompatActivity {
 
     /**
      * Checks if the pressed panel completed any tasks and completes it. Otherwise does nothing.
+     *
      * @param p
      * @param playerId
      */
-    private void finishButtonTask(Panel p, int playerId){
+    private void finishButtonTask(Panel p, int playerId) {
 //        HashMap<Player, Task> pTasks = new HashMap<>(game.getPlayerTasks());
         //Loop through all playerTasks
         for (Map.Entry<Player, Task> pTask : game.getPlayerTasks().entrySet()) {
             if (pTask.getValue() instanceof PanelTask) {
                 PanelTask task = (PanelTask) pTask.getValue();
-                if (task.isConcurrent()){
+                if (task.isConcurrent()) {
                     // Set panel on pressed.
                     task.setPressed(p.getId());
-                    if (task.isCompleted()){
+                    if (task.isCompleted()) {
                         game.completeTask();
                         if (pTask.getKey().getId() == HOSTPLAYERID) {
                             taskCompleted();
@@ -795,7 +887,7 @@ public class CoordinatorGameScreen extends AppCompatActivity {
                     }
                 } else {
                     // If panel being pressed is the same complete the task
-                    if (p.getId() == task.getTaskPanel().getId()){
+                    if (p.getId() == task.getTaskPanel().getId()) {
                         game.completeTask();
                         if (pTask.getKey().getId() == HOSTPLAYERID) {
                             taskCompleted();
@@ -809,6 +901,7 @@ public class CoordinatorGameScreen extends AppCompatActivity {
 
     /**
      * Sets button of certain task to released
+     *
      * @param p
      */
     private void releaseButton(Panel p) {
@@ -830,29 +923,34 @@ public class CoordinatorGameScreen extends AppCompatActivity {
         for (Map.Entry<Player, Task> pTask : game.getPlayerTasks().entrySet()) {
             if (pTask.getValue() instanceof LocationTask) {
                 LocationTask lTask = (LocationTask) pTask.getValue();
-                if (lTask.isConcurrent()){
+                if (lTask.isConcurrent()) {
                     ArrayList<MapObject> objects = lTask.getMapObjects();
                     boolean finished = true;
                     // Loop though all location in the locationTask and
                     // if one of the locations is not in the set with the playerlocations the task is not finished
                     for (MapObject m : objects) {
-                        if (!gameMap.getPlayerLocations().values().contains(gameMap.getObjectLocation(m))){
+                        if (!gameMap.isPlayerLocation(gameMap.getObjectLocation(m))) {
                             finished = false;
                             break;
                         }
                     }
                     if (finished) {
-                        if(pTask.getKey().getId() == HOSTPLAYERID) {
+                        if (pTask.getKey().getId() == HOSTPLAYERID) {
                             taskCompleted();
                         }
                         newTask(pTask.getKey().getId());
                     }
                 } else {
-                    if (gameMap.getPlayerLocations().values().contains(gameMap.getObjectLocation(lTask.getMapObject()))){
-                        if(pTask.getKey().getId() == HOSTPLAYERID) {
-                            taskCompleted();
+                    Log.i("FINISHTASK", "TRY :" + lTask.getMapObject().getName());
+//                    Log.i("FINISHTASK", gameMap.getObjectLocationFromType());
+                    if (gameMap.getObjectLocation(lTask.getMapObject()) != null) {
+                        Log.i("FINISHTASK", gameMap.getObjectLocation(lTask.getMapObject()).toString() + " :  " + lTask.getMapObject().getName());
+                        if (gameMap.isPlayerLocation(gameMap.getObjectLocation(lTask.getMapObject()))) {
+                            if (pTask.getKey().getId() == HOSTPLAYERID) {
+                                taskCompleted();
+                            }
+                            newTask(pTask.getKey().getId());
                         }
-                        newTask(pTask.getKey().getId());
                     }
                 }
             }
@@ -870,14 +968,71 @@ public class CoordinatorGameScreen extends AppCompatActivity {
         }
     }
 
+    private void setConcurPlayerTasks(MotionActivityType mType) {
+        int amount = concurActivityies.containsKey(mType) ? concurActivityies.get(mType)+1 : 1;
+        CountDownTimer timer = new CountDownTimer(CONCUR_ACTIVITY_TIME, CONCUR_ACTIVITY_TIME) {
+            @Override
+            public void onTick(long l) {
+
+            }
+
+            @Override
+            public void onFinish() {
+                concurActivityies.put(mType, concurActivityies.get(mType)-1);
+            }
+        };
+        if (concurActivityiesTimers.containsKey(mType)) {
+            concurActivityiesTimers.get(mType).cancel();
+        }
+        concurActivityies.put(mType, amount);
+        concurActivityiesTimers.put(mType,timer);
+
+    }
+
     private void locationFound(Location location) {
-        gameMap.setVisible(location);
+        boolean isVisible = false;
+        for (Location visible : gameMap.getVisibleList()) {
+            if (visible.isLocation(location)) {
+                isVisible = true;
+                break;
+            }
+
+        }
+        if (!isVisible) {
+            if (gameMap.getObjectFromLocation(location) != null) {
+                drawObjectOnMap(gameMap.getObjectFromLocation(location).getObjectType().getIcon(), location);
+            }
+
+            gameMap.setVisible(location);
+        }
+        CountDownTimer mapTimer = new CountDownTimer(MAPTILE_VISIBLE, MAPTILE_VISIBLE) {
+            @Override
+            public void onTick(long l) {
+
+            }
+
+            @Override
+            public void onFinish() {
+                Log.i("MAPTIMER", "TIMER DONE: " + location.getX() + " " + location.getY());
+                gameMap.setInvisible(location);
+                drawMap();
+            }
+
+        };
+        for (Map.Entry<Location, CountDownTimer> mt : mapTiles.entrySet()) {
+            if (mt.getKey().isLocation(location)) {
+                Log.i("MAPPP", "rewrite timer");
+                mt.getValue().cancel();
+            }
+        }
+        mapTiles.put(location, mapTimer);
+        mapTimer.start();
         drawMap();
     }
 
-    private void findLocationObject(Location location, int playerId){
+    private void findLocationObject(Location location, int playerId) {
         MapObject object = gameMap.getObjectFromLocation(location);
-        if(object != null){
+        if (object != null) {
             sendLocationObject(object, playerId);
         }
     }
@@ -885,34 +1040,34 @@ public class CoordinatorGameScreen extends AppCompatActivity {
 
     private void parseMessage(String message, int playerId) {
         String[] msgToParse = message.split(Constants.MESSAGE_SEPARATOR);
-        switch (msgToParse[0]){
+        switch (msgToParse[0]) {
             case Constants.HEADER_TASK:
                 String activity = msgToParse[2];
                 int index;
                 try {
                     index = Integer.parseInt(msgToParse[2]);
-                } catch (NumberFormatException e ){
+                } catch (NumberFormatException e) {
                     index = -15;
                 }
                 if (activity.equals(Constants.TASK_FAILED)) {
                     failTask(playerId);
-                } else if (index >= 0){
+                } else if (index >= 0) {
                     finishMotionTask(MotionActivityType.valueOf(Integer.parseInt(activity)), playerId);
                 }
                 break;
             case Constants.HEADER_BUTTON:
-                Log.i("BUTTONPARSE" , msgToParse[2]);
-                    int buttonId = Integer.parseInt(msgToParse[2]);
-                    String buttonPressed = msgToParse[3];
-                    for (Panel p : panels) {
-                        if (p.getId() == buttonId) {
-                            if (buttonPressed.equals(Constants.PRESSED)) {
-                                finishButtonTask(p, playerId);
-                            } else if (buttonPressed.equals(Constants.RELEASED)) {
-                                releaseButton(p);
-                            }
+                Log.i("BUTTONPARSE", msgToParse[2]);
+                int buttonId = Integer.parseInt(msgToParse[2]);
+                String buttonPressed = msgToParse[3];
+                for (Panel p : panels) {
+                    if (p.getId() == buttonId) {
+                        if (buttonPressed.equals(Constants.PRESSED)) {
+                            finishButtonTask(p, playerId);
+                        } else if (buttonPressed.equals(Constants.RELEASED)) {
+                            releaseButton(p);
                         }
                     }
+                }
 
 
                 break;
@@ -950,18 +1105,15 @@ public class CoordinatorGameScreen extends AppCompatActivity {
                     Log.i(TAG, "Message READ: " + msg.obj);
                     parseMessage((String) msg.obj, msg.arg1);
                     break;
-                case Constants.LOCATION_FOUND:
-                    //Todo location thingies
-                    break;
                 case Constants.ACTIVITY_RECOGNIZED:
                     //Todo activity dinges
                     break;
                 case Constants.NEW_CONNECTION:
                     Log.i(TAG, "NEW CONNECTION : " + msg.obj.toString());
                     //The view mainactivity view is edited to show the amount of joined players
-                    ((TextView)(findViewById(R.id.amount_players))).setText(String.valueOf(msg.arg1));
+                    ((TextView) (findViewById(R.id.amount_players))).setText(String.valueOf(msg.arg1));
                     findViewById(R.id.btn_start).setEnabled(true);
-                    playerIds.add((Integer)msg.obj);
+                    playerIds.add((Integer) msg.obj);
                     //For every new connection a player is added to the game.
                     game.setPlayerAmount((Integer) msg.arg1);
                     break;
@@ -973,7 +1125,7 @@ public class CoordinatorGameScreen extends AppCompatActivity {
     protected void onNewIntent(Intent intent) {
         //super.onNewIntent(intent);
         Log.d(TAG, "NFC FOUND: " + intent.getAction());
-        if(NfcAdapter.ACTION_NDEF_DISCOVERED.equals(intent.getAction())) {
+        if (NfcAdapter.ACTION_NDEF_DISCOVERED.equals(intent.getAction())) {
             coords = reader.readFromIntent(intent);
             Log.d(TAG, "LOCATION: " + coords);
             int x = Character.getNumericValue(coords.charAt(1));
@@ -989,16 +1141,276 @@ public class CoordinatorGameScreen extends AppCompatActivity {
     }
 
     @Override
-    public void onPause(){
+    public void onPause() {
         super.onPause();
-        if (nfcAdapter!=null) {
+        if (nfcAdapter != null) {
             nfcAdapter.disableForegroundDispatch(this);
         }
     }
 
     @Override
-    public void onResume(){
+    public void onResume() {
         super.onResume();
         nfcAdapter.enableForegroundDispatch(this, pendingIntent, null, null);
     }
+
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        // TODO: is always trying to recognize activity when it has last scanned an object. --> fix?
+//        Log.d("SENSOR", "START");
+        if(gameStart) {
+            if (gameMap.getPlayerLocations().get(game.getPlayer(HOSTPLAYERID)) != null && gameMap.getPlayerLocations().get(game.getPlayer(HOSTPLAYERID)).isLocation(gameMap.getObjectLocationFromType(ObjectType.LOCK))) {
+                Log.d("SENSOR", "LOCKPIKC??");
+                if (!lockpickbool) {
+                    lockpickbool = true;
+                    Lockpicker();
+                }
+                checkSensorsChanged(event);
+                if (accChanged && gyroChanged) {
+                    Double[] arrayPicklock = getSensorData();
+                    changedSensorActivity(arrayPicklock);
+
+                    try {
+                        double resultpick = WekaClassifierPicklock.classify(arrayPicklock);
+                        if (picklockstable.size() == 0) {
+                            startTime = System.nanoTime();
+                        }
+                        picklockstable.add(resultpick);
+                        if (picklockstable.size() == STABLE_AMOUNT) {
+                            String textresultpicklock;
+                            elapsedTime = (int) ((System.nanoTime() - startTime) / 1000000);
+                            resultpick = getBestClassifiedActivity();
+
+                            if (resultpick == 0.0) {
+                                textresultpicklock = "Left";
+                                flatTime = 0;
+                                rightTime = 0;
+                                middleTime = 0;
+                                downTime = 0;
+                                leftTime = leftTime + elapsedTime;
+                                picklockstable.clear();
+                                if (activity.equals(textresultpicklock)) {
+                                    Lockpickerresult(leftTime);
+                                }
+                            } else if (resultpick == 1.0) {
+                                textresultpicklock = "Down";
+                                flatTime = 0;
+                                rightTime = 0;
+                                middleTime = 0;
+                                leftTime = 0;
+                                downTime = downTime + elapsedTime;
+                                picklockstable.clear();
+                                if (activity.equals(textresultpicklock)) {
+                                    Lockpickerresult(downTime);
+                                }
+                            } else if (resultpick == 2.0) {
+                                textresultpicklock = "Flat";
+                                rightTime = 0;
+                                middleTime = 0;
+                                leftTime = 0;
+                                downTime = 0;
+
+                                flatTime = flatTime + elapsedTime;
+                                picklockstable.clear();
+                                if (activity.equals(textresultpicklock)) {
+                                    Lockpickerresult(flatTime);
+                                }
+                            } else if (resultpick == 3.0) {
+                                textresultpicklock = "Right";
+                                middleTime = 0;
+                                leftTime = 0;
+                                downTime = 0;
+                                flatTime = 0;
+
+
+                                rightTime = rightTime + elapsedTime;
+                                picklockstable.clear();
+                                if (activity.equals(textresultpicklock)) {
+                                    Lockpickerresult(rightTime);
+                                }
+                            } else if (resultpick == 4.0) {
+                                rightTime = 0;
+                                leftTime = 0;
+                                downTime = 0;
+                                flatTime = 0;
+                                textresultpicklock = "Middle";
+                                middleTime = middleTime + elapsedTime;
+                                picklockstable.clear();
+                                if (activity.equals(textresultpicklock)) {
+                                    Lockpickerresult(middleTime);
+                                }
+                            } else {
+                                picklockstable.clear();
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            } else {
+//            Log.d("SENSOR", "ChecksensorChanged");
+                checkSensorsChanged(event);
+                changedSensorActivity();
+
+            }
+        }
+    }
+
+    private void changedSensorActivity() {
+        if (accChanged && gyroChanged ){
+//            Log.i("SENSORCHANGED", "SENDOSRGDFESFS");
+            Double[] array = getSensorData();
+
+            try{
+                classifyData(array);
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void changedSensorActivity(Double[] sensordata) {
+        try{
+            classifyData(sensordata);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+    }
+
+    private void classifyData(Double[] array) throws Exception {
+        double result = WekaClassifierActivities.classify(array);
+        activitystable.add(result);
+//        Log.i("ACITIVEYTD234", MotionActivityType.valueOf((int)result).toString());
+//        Log.i("ACITIVEYTD234", activitystable.size() + "");
+        if( activitystable.size() >= STABLE_AMOUNT) {
+            result = getBestClassifiedActivity();
+//            Log.i("ACITIVEYTD", result + " ; " + ((int) result));
+//            Log.i("ACITIVEYTD", MotionActivityType.valueOf((int)result).toString());
+            String msg;
+            if (result == 0.0 && lastScannedObject == ObjectType.ROPE.getResource()) {
+                finishMotionTask(MotionActivityType.valueOf((int)result), HOSTPLAYERID);
+                msg = Constants.HEADER_TASK + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + MotionActivityType.RAISE_FLAG.getResource();
+            } else{
+                finishMotionTask(MotionActivityType.valueOf((int)result), HOSTPLAYERID);
+            }
+
+
+//            fragment.sendMessage(msg);
+            activitystable.clear();
+        }
+    }
+
+    private double getBestClassifiedActivity() {
+        double result;
+        for (int i = 0; i < activitystable.size(); ++i) {
+            int count = 0;
+            for (int j = 0; j < activitystable.size(); ++j) {
+                if (activitystable.get(j) == activitystable.get(i)) ++count;
+            }
+            if (count > maxCount) {
+                maxCount = count;
+                maxValue = activitystable.get(i);
+            }
+        }
+
+        result = maxValue;
+        maxValue = -1;
+        maxCount = -1;
+        return result;
+    }
+
+    private Double[] getSensorData() {
+        accChanged = false;
+        gyroChanged = false;
+        Double array [] = new Double[6];
+        array[0] = accXValue;
+        array[1] = accYValue;
+        array[2] = accZValue;
+        array[3] = gyroXvalue;
+        array[4] = gyroYValue;
+        array[5] = gyroZValue;
+
+        return array;
+    }
+
+    private void checkSensorsChanged(SensorEvent event) {
+//        Log.d(TAG, "onSensorChanged: sensor: " + Sensor.TYPE_ACCELEROMETER);
+        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER){
+
+            this.accXValue = event.values[0];
+            this.accYValue = event.values[1];
+            this.accZValue = event.values[2];
+            accChanged = true;
+//            Log.d(TAG, "startTracking: sensordata changed: x: " + this.accXValue + ", y: " + this.accYValue + ", z: " + this.accZValue);
+        } else if (event.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
+            this.gyroXvalue = event.values[0];
+            this.gyroYValue = event.values[1];
+            this.gyroZValue = event.values[2];
+            gyroChanged = true;
+        }
+    }
+
+
+    public void Vibrate(){
+        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        // Vibrate for 500 milliseconds
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            v.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
+        } else {
+            //deprecated in API 26
+            v.vibrate(500);
+        }
+    }
+
+    public void Lockpicker(){
+        picklock = randomActions(randomNumber());
+        activity = picklock.get(0).toString();
+    }
+
+    public void Lockpickerresult(int time) {
+        if (ACTIVITY_RECOGNITION_LENGTH < time) {
+            picklock.remove(0);
+            Vibrate();
+            Log.i("LOCKPICK", picklock.toString());
+            if (picklock.size() != 0) {
+                activity = picklock.get(0).toString();
+            } else {
+//                String msg = Constants.HEADER_TASK + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + MotionActivityType.PICK_LOCK.getResource();
+//                fragment.sendMessage(msg);
+                Log.i("LOCKPICK", "woop woop");
+                finishMotionTask(MotionActivityType.PICK_LOCK,HOSTPLAYERID);
+                lockpickbool = false;
+                done = true;
+            }
+        }
+    }
+
+    public int randomNumber() {
+        int randomInt = new Random().nextInt(4) + 2;
+        return randomInt;
+    }
+
+    public List randomActions(int amount){
+        List<String> myList = new ArrayList<String>();
+        myList.add("Flat");
+        myList.add("Right");
+        myList.add("Middle");
+        myList.add("Left");
+        myList.add("Down");
+        List picklockActivity = new ArrayList();
+        int lastRand = 300;
+        for (int i = 0; i < amount; i++) {
+            int rand = new Random().nextInt(myList.size());
+            while (rand == lastRand) {
+                rand = new Random().nextInt(myList.size());
+            }
+            picklockActivity.add(myList.get(rand));
+        }
+        return picklockActivity;
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) { }
+
 }

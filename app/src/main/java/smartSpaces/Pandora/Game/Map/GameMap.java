@@ -66,6 +66,15 @@ public class GameMap {
         return players;
     }
 
+    public boolean isPlayerLocation(Location location){
+        for (Location l : players.values()) {
+            if (l.isLocation(location)){
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Assigns an {@link MapObject} to a certain {@link Location} on the map.
      * This can also be used to change the {@link Location} if this {@link MapObject} already exists on the map.
@@ -90,7 +99,8 @@ public class GameMap {
      */
     public Location getObjectLocation(MapObject object){
         for(Map.Entry<Location, MapObject> p : objects.entrySet()){
-            if (p.getValue() == object) {
+            Log.i("GETOBJECTLOCTAIN", p.getValue().getName() + " : " + object.getName());
+            if (p.getValue().getResource() == object.getResource()) {
                 return p.getKey();
             }
         }
@@ -117,7 +127,12 @@ public class GameMap {
      * @return The {@link MapObject} or null if there is no {@link MapObject}
      */
     public MapObject getObjectFromLocation(Location location) {
-        return objects.get(location);
+        for (Location l : objects.keySet()) {
+            if (l.isLocation(location)){
+                return objects.get(l);
+            }
+        }
+        return null;
     }
 
     /**

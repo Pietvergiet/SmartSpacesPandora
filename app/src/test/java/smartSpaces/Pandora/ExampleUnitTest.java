@@ -1,5 +1,7 @@
 package smartSpaces.Pandora;
 
+import android.app.RemoteInput;
+
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -99,11 +101,12 @@ public class ExampleUnitTest {
         int x = 5;
         int y = 5;
         GameMap map = new GameMap(x,y);
-        ObjectType object = ObjectType.LOCK;
+        MotionActivityType tmp = MotionActivityType.PICK_LOCK;
+        ObjectType object = tmp.getObjectType();
         MapObject mobject = new MapObject(object);
 
         assertEquals(object.getResource(), 2);
-        assertEquals(object, MotionActivityType.PICK_LOCK.getObjectType());
+        assertEquals(MotionActivityType.PICK_LOCK, object.getMotionActivityType());
         assertEquals(object.isHazard(), false);
 
         //add object to the map

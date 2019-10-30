@@ -67,6 +67,10 @@ public class BluetoothService {
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     }
 
+    public synchronized int getState(){
+        return mState;
+    }
+
     /**
      * Starts the bluetooth server thread.
      * This will listen for incoming connections after which communication is possible.
@@ -149,6 +153,7 @@ public class BluetoothService {
      * @param socket The socket
      */
     public synchronized void startConnection(BluetoothSocket socket) {
+        mState = STATE_CONNECTED;
         if (isServer){
             connectionAmount++;
             if (connectionAmount <= MAX_CONNECTIONS){
@@ -229,6 +234,7 @@ public class BluetoothService {
     public synchronized void stop(){
         Log.d(TAG, "Stop");
         if (aThread != null) {
+            Log.d(TAG, "Stop athread");
             aThread.cancel();
             aThread = null;
         }
@@ -262,13 +268,22 @@ public class BluetoothService {
      */
     private void connectionFailed() {
         // Send a failure message back to the Activity
+        Log.i(TAG, "CONNEction failed");
+//        Message msg = handler.obtainMessage(Constants.MESSAGE_TOAST);
+//        Log.i(TAG, "CONNEction failed22");
+//        Bundle bundle = new Bundle();
+//        bundle.putString(Constants.TOAST, "Unable to connect device");
+//        msg.setData(bundle);
         Message msg = handler.obtainMessage(Constants.MESSAGE_TOAST);
         Bundle bundle = new Bundle();
         bundle.putString(Constants.TOAST, "Unable to connect device");
         msg.setData(bundle);
-        handler.sendMessage(msg);
-
+//        handler.sendMessage(msg);
+//        Message msg2 = handler.obtainMessage(Constants.MESSAGE_READ, "CONNECTION FAILED".getBytes());
+//        msg2.sendToTarget();
+        Log.i(TAG, "CONNEction failed2");
         mState = STATE_NONE;
+
     }
 
     /**
@@ -276,11 +291,12 @@ public class BluetoothService {
      */
     private void connectionLost() {
         // Send a failure message back to the Activity
-        Message msg = handler.obtainMessage(Constants.MESSAGE_TOAST);
-        Bundle bundle = new Bundle();
-        bundle.putString(Constants.TOAST, "Device connection was lost");
-        msg.setData(bundle);
-        handler.sendMessage(msg);
+        Message msg = handler.obtainMessage(Constants.MESSAGE_TOAST, "Device connection was lost");
+//        Bundle bundle = new Bundle();
+//        bundle.putString(Constants.TOAST, "Device connection was lost");
+//        msg.setData(bundle);
+//        handler.sendMessage(msg);
+        msg.sendToTarget();
 
         mState = STATE_NONE;
     }
@@ -314,7 +330,6 @@ public class BluetoothService {
                     socket = mmServerSocket.accept();
                 } catch (IOException e) {
                     Log.i(TAG, "Socket's accept() method failed");
-
                 }
 
                 if (socket != null) {
@@ -384,6 +399,8 @@ public class BluetoothService {
                 } catch (IOException closeException) {
                     Log.i(TAG,"Shit is stuk");
                     Log.e(TAG,"Could not close the client socket", closeException);
+                } catch (Exception e) {
+                    Log.e(TAG, e.getMessage());
                 }
                 connectionFailed();
                 return;

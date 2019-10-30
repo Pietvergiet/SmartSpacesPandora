@@ -38,6 +38,11 @@ public class BluetoothServiceFragment extends Fragment {
     private static final int REQUEST_CONNECT_DEVICE = 1;
     private static final int REQUEST_ENABLE_BT = 3;
 
+    private static final int STATE_NONE = 0;       // we're doing nothing
+    private static final int STATE_LISTEN = 1;     // now listening for incoming connections
+    private static final int STATE_CONNECTING = 2; // now initiating an outgoing connection
+    private static final int STATE_CONNECTED = 3;  // now connected to a remote device
+
     private BluetoothService myBluetoothService;
     private BluetoothAdapter mBluetoothAdapter;
     private boolean isHost;
@@ -121,7 +126,7 @@ public class BluetoothServiceFragment extends Fragment {
     /**
      * Starts a {@link BluetoothService} as a client and start a {@link DeviceListActivity}.
      */
-    private void startClient() {
+    public void startClient() {
         isStarted = true;
         myBluetoothService = new BluetoothService(bHandler, false);
         Intent serverIntent = new Intent(getActivity(), DeviceListActivity.class);
@@ -138,6 +143,7 @@ public class BluetoothServiceFragment extends Fragment {
                     makeConnection(data);
                 } else if (resultCode == Activity.RESULT_CANCELED) {
                     Log.i(TAG, "RESULT CANCELED");
+                    getActivity().finish();
                 }
 
                 break;
@@ -162,9 +168,14 @@ public class BluetoothServiceFragment extends Fragment {
         int counter = 0;
         mBluetoothAdapter.cancelDiscovery();
         myBluetoothService.join(device);
-        while (!myBluetoothService.isClientConnected()) {
+        while (myBluetoothService.getState() != STATE_CONNECTED ) {
             counter++;
-            if (counter % 100 == 0) {
+            if (counter % 100000000 == 0) {
+                Log.i(TAG, "WAITing");
+                if (myBluetoothService.getState() == STATE_NONE){
+                    startClient();
+                    break;
+                }
             }
 
         }
@@ -247,6 +258,19 @@ public class BluetoothServiceFragment extends Fragment {
                                 Constants.NEW_CONNECTION, clients.size(), -1, msg.obj);
                         conMessage.sendToTarget();
                     }
+                    break;
+                case Constants.MESSAGE_TOAST:
+                    Log.i(TAG, "TOAST ERROR");
+                    FragmentActivity activity = getActivity();
+                    if (null != activity) {
+                        Log.i("TOAST", "SHIT STUK");
+                        Toast.makeText(activity, msg.getData().getString(Constants.TOAST),
+                                Toast.LENGTH_SHORT).show();
+                    }
+//                    Toast.makeText(activity, msg.obj.toString(),
+//                            Toast.LENGTH_SHORT).show();
+//                    myBluetoothService.stop();
+                    startClient();
                     break;
             }
         }

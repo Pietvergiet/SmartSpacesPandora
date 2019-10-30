@@ -79,6 +79,10 @@ public class GameHost {
         return tasksToComplete - tasksComplete;
     }
 
+    public int getTasksComplete() {
+        return tasksComplete;
+    }
+
     public void addTask() {
         tasksToComplete++;
     }
