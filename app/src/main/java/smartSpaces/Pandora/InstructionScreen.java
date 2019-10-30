@@ -24,8 +24,6 @@ import smartSpaces.Pandora.P2P.Constants;
 import smartSpaces.Pandora.Picklock.R;
 
 public class InstructionScreen extends AppCompatActivity {
-    private int COORDINATOR_ROLE = 0;
-    private int EXPLORER_ROLE = 1;
     private String TAG = "Instruction Screen: ";
     private int role;
     private boolean isAnimating = false;
@@ -195,17 +193,17 @@ public class InstructionScreen extends AppCompatActivity {
     }
 
     public void goToNext(View view) {
-        if (role == COORDINATOR_ROLE){
+        if (role == Constants.COORDINATOR_ROLE){
             goToCoordinator();
-        } else if (role == EXPLORER_ROLE) {
+        } else if (role == Constants.EXPLORER_ROLE) {
             goToExplorer();
         }
     }
 
     public void goToNext() {
-        if (role == COORDINATOR_ROLE){
+        if (role == Constants.COORDINATOR_ROLE){
             goToCoordinator();
-        } else if (role == EXPLORER_ROLE) {
+        } else if (role == Constants.EXPLORER_ROLE) {
             goToExplorer();
         }
     }

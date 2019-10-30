@@ -11,11 +11,10 @@ import android.widget.TextView;
 
 import java.lang.reflect.Type;
 
+import smartSpaces.Pandora.P2P.Constants;
 import smartSpaces.Pandora.Picklock.R;
 
 public class WinScreen extends AppCompatActivity {
-    private int COORDINATOR_ROLE = 0;
-    private int EXPLORER_ROLE = 1;
     private int role;
 
     @Override
@@ -38,14 +37,13 @@ public class WinScreen extends AppCompatActivity {
         home.setTypeface(horrorFont);
     }
 
-
     public void startNewGame(View view) {
         // check if explorer or coordinator
-        if (role == COORDINATOR_ROLE) {
+        if (role == Constants.COORDINATOR_ROLE) {
             // is coordinator
             Intent intent = new Intent(this, CoordinatorGameScreen.class);
             startActivity(intent);
-        } else if (role == EXPLORER_ROLE) {
+        } else if (role == Constants.EXPLORER_ROLE) {
             // is explorer
             Intent intent = new Intent(this, ExplorerGameScreen.class);
             startActivity(intent);

@@ -47,4 +47,7 @@ public interface Constants {
     String MESSAGE_LIST_ELEMENT_SEPARATOR = "_";
     String MESSAGE_LIST_END = "]";
     String TOAST = "toast";
+
+    int COORDINATOR_ROLE = 0;
+    int EXPLORER_ROLE = 1;
 }
