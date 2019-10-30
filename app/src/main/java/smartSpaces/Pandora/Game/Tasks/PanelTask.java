@@ -32,8 +32,9 @@ public class PanelTask extends Task{
     }
 
     public void buildDescription() {
-        //Log.i("PANELTASK", concurPanels.toString() + " iscon" + isConcurrent());
+        Log.i("PANELTASK", "iscon" + isConcurrent());
         if (isConcurrent()){
+            Log.i("PANELTASK", concurPanels.toString());
             ArrayList<String> d = new ArrayList<>();
             for (Panel p: concurPanels.keySet()) {
                 d.add(p.getVerb() + " the " + p.getObject());

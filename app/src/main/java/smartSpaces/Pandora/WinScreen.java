@@ -51,6 +51,7 @@ public class WinScreen extends AppCompatActivity {
     }
 
     public void goToHome(View view) {
+        finish();
         Intent intent = new Intent(this, MainActivity.class);
         startActivity(intent);
     }

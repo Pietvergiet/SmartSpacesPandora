@@ -1,7 +1,10 @@
 package smartSpaces.Pandora;
 
 import android.annotation.SuppressLint;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -10,6 +13,7 @@ import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
+import android.nfc.NfcAdapter;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -25,6 +29,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentTransaction;
@@ -66,7 +71,7 @@ public class CoordinatorGameScreen extends AppCompatActivity {
     private GameHost game;
     private GameMap gameMap;
     private ArrayList<Panel> panels;
-    private Set<Integer> playerIds;
+    private HashSet<Integer> playerIds;
 
     //endregion
 
@@ -83,16 +88,37 @@ public class CoordinatorGameScreen extends AppCompatActivity {
     Bitmap scaledbm;
     private ArrayList<Location> hiddenMapBlocks;
     CountDownTimer timer;
+    CountDownTimer taskTimer;
     //endregion
+
+    //NFC stuff
+    NfcAdapter nfcAdapter;
+    PendingIntent pendingIntent;
+    IntentFilter writeTagFilters[];
+    Context context;
+    public String coords = "";
+    NFCReader reader = new NFCReader();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_coordinator_game_screen);
         game = new GameHost(30, 4);
-
+        playerIds = new HashSet<>();
         bServiceFragment = new BluetoothServiceFragment(true, hostHandler, this);
         startBluetooth();
+
+        //NFC stuff
+        context = this;
+        nfcAdapter = NfcAdapter.getDefaultAdapter(this);
+        if (nfcAdapter == null) {
+            // Stop here, we definitely need NFC
+            Toast.makeText(this, "This device doesn't support NFC.", Toast.LENGTH_LONG).show();
+            finish();
+        }
+        pendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, getClass()).addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP), 0);
+        IntentFilter tagDetected = new IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED);
+        tagDetected.addCategory(Intent.CATEGORY_DEFAULT);
 
 
         game.addPlayer(new Player(HOSTPLAYERID, true));
@@ -177,7 +203,7 @@ public class CoordinatorGameScreen extends AppCompatActivity {
      *
      */
     public void startGame(){
-        playerIds = new HashSet<>(bServiceFragment.getClientIds());
+        playerIds.addAll(bServiceFragment.getClientIds());
         Log.i(TAG, "IDs" + playerIds.toString());
         playerIds.add(HOSTPLAYERID);
         initMap();
@@ -201,7 +227,7 @@ public class CoordinatorGameScreen extends AppCompatActivity {
             public void onTick(long l) {
                 int min = (int) Math.floor((double) Long.valueOf(l / (60*1000)));
                 int sec =(int) (l - (min * 60 * 1000)) / 1000;
-                Log.d(TAG, "onTick: " + min + ":" + sec);
+//                Log.d(TAG, "onTick: " + min + ":" + sec);
 
                 updateTimer(min, sec);
             }
@@ -214,7 +240,7 @@ public class CoordinatorGameScreen extends AppCompatActivity {
         };
 
         timer.start();
-
+        drawMap();
 
 //        setTask("Chase a cart");
     }
@@ -271,6 +297,29 @@ public class CoordinatorGameScreen extends AppCompatActivity {
     }
 
     private void initTasks(){
+        taskTimer = new CountDownTimer(TASKTIME, TASKTIME_INTERVAL) {
+            final ProgressBar progressBar = findViewById(R.id.progressBar);
+            /**
+             * For every tick update the progressbar
+             */
+            @Override
+            public void onTick(long l) {
+                int progress = (int) Math.round((((double) Long.valueOf(l)) / TASKTIME) * 100);
+                progressBar.setProgress(progress);
+            }
+
+            /**
+             * When task timer is finished, show completed or fail
+             */
+            @Override
+            public void onFinish() {
+                Log.d(TAG, "onFinish: TIME OUT! TASK FAILED...");
+
+//                taskCompleted();
+                taskFailed();
+//                setTask("Do a pirouette");
+            }
+        };
         for(int id : playerIds) {
             Task task = randomTaskForPlayer(id);
             game.newTask(game.getPlayer(id), task);
@@ -288,7 +337,7 @@ public class CoordinatorGameScreen extends AppCompatActivity {
     //region Randomizers
     private Task randomTaskForPlayer(int id) {
         Player player = game.getPlayer(id);
-        TaskType rTask = getRandomTaskType();
+        TaskType rTask = getRandomTaskType(id);
 //        TaskType rTask = TaskType.LOCATION_CONCURRENT;
         Random r = new Random();
         Task task = null;
@@ -297,7 +346,8 @@ public class CoordinatorGameScreen extends AppCompatActivity {
                 Log.i(TAG, panels.toString());
                 ArrayList<Panel> pList = new ArrayList<>(panels);
                 pList.removeAll(Arrays.asList(player.getPanels()));
-                task = new PanelTask(pList.get(r.nextInt(pList.size())));
+                int index = r.nextInt(pList.size());
+                task = new PanelTask(pList.get(index));
                 break;
             case PANEL_CONCURRENT:
                 ArrayList<Panel> list = new ArrayList<>();
@@ -359,8 +409,13 @@ public class CoordinatorGameScreen extends AppCompatActivity {
 //        return activities.get(r.nextInt(activities.size()));
     }
 
-    private TaskType getRandomTaskType() {
+    private TaskType getRandomTaskType(int playerId) {
         Random r = new Random();
+        if (game.getPlayerAmount() <= 2 && playerId != HOSTPLAYERID) {
+            return TaskType.MOTION;
+        } else if (playerId == HOSTPLAYERID){
+            return TaskType.PANEL;
+        }
         return TaskType.values()[r.nextInt(TaskType.values().length)];
     }
 
@@ -448,33 +503,14 @@ public class CoordinatorGameScreen extends AppCompatActivity {
      * @param task
      */
     public void setTask(String task) {
+        if (task.equals("Dummmy Task")) {
+            Log.i("DUMMYTASK", game.getPlayerTasks().get(game.getPlayer(HOSTPLAYERID)).getTaskType().toString() + " " + game.getPlayerTasks().get(game.getPlayer(HOSTPLAYERID)).getDescription());
+        }
         TextView taskView = findViewById(R.id.task);
-        final ProgressBar progressBar = findViewById(R.id.progressBar);
+
         taskView.setText(task);
 
-        CountDownTimer taskTimer = new CountDownTimer(TASKTIME, TASKTIME_INTERVAL) {
 
-            /**
-             * For every tick update the progressbar
-             */
-            @Override
-            public void onTick(long l) {
-                int progress = (int) Math.round((((double) Long.valueOf(l)) / TASKTIME) * 100);
-                progressBar.setProgress(progress);
-            }
-
-            /**
-             * When task timer is finished, show completed or fail
-             */
-            @Override
-            public void onFinish() {
-                Log.d(TAG, "onFinish: TIME OUT! TASK FAILED...");
-
-//                taskCompleted();
-                taskFailed();
-                setTask("Do a pirouette");
-            }
-        };
 
         taskTimer.start();
     }
@@ -605,12 +641,14 @@ public class CoordinatorGameScreen extends AppCompatActivity {
     }
 
     public void goToWin() {
+        finish();
         Intent intent = new Intent(this, WinScreen.class);
         intent.putExtra("role", COORDINATOR_ROLE);
         startActivity(intent);
     }
 
     public void goToLost() {
+        finish();
         Intent intent = new Intent(this, LostScreen.class);
         intent.putExtra("role", COORDINATOR_ROLE);
         startActivity(intent);
@@ -660,8 +698,9 @@ public class CoordinatorGameScreen extends AppCompatActivity {
                 TextUtils.join(Constants.MESSAGE_LIST_SEPARATOR, list));
 
         String out = TextUtils.join(Constants.MESSAGE_SEPARATOR, message);
+        Log.i("SEND PANEL", "ID: " + playerId);
         Log.i("SEND PANEL", out);
-        bServiceFragment.sendMessage(out);
+        bServiceFragment.sendMessage(out, playerId);
     }
 
     private void sendHazardTriggered(MapObject hazard, int playerId){
@@ -849,24 +888,32 @@ public class CoordinatorGameScreen extends AppCompatActivity {
         switch (msgToParse[0]){
             case Constants.HEADER_TASK:
                 String activity = msgToParse[2];
+                int index;
+                try {
+                    index = Integer.parseInt(msgToParse[2]);
+                } catch (NumberFormatException e ){
+                    index = -15;
+                }
                 if (activity.equals(Constants.TASK_FAILED)) {
                     failTask(playerId);
-                } else if (Integer.getInteger(activity) != null) {
-                    finishMotionTask(MotionActivityType.valueOf(Integer.getInteger(activity)), playerId);
+                } else if (index >= 0){
+                    finishMotionTask(MotionActivityType.valueOf(Integer.parseInt(activity)), playerId);
                 }
                 break;
             case Constants.HEADER_BUTTON:
-                int buttonId = Integer.getInteger(msgToParse[2]);
-                String buttonPressed = msgToParse[3];
-                for (Panel p : panels) {
-                    if (p.getId() == buttonId){
-                        if (buttonPressed.equals(Constants.PRESSED)) {
-                            finishButtonTask(p, playerId);
-                        } else if (buttonPressed.equals(Constants.RELEASED)){
-                            releaseButton(p);
+                Log.i("BUTTONPARSE" , msgToParse[2]);
+                    int buttonId = Integer.parseInt(msgToParse[2]);
+                    String buttonPressed = msgToParse[3];
+                    for (Panel p : panels) {
+                        if (p.getId() == buttonId) {
+                            if (buttonPressed.equals(Constants.PRESSED)) {
+                                finishButtonTask(p, playerId);
+                            } else if (buttonPressed.equals(Constants.RELEASED)) {
+                                releaseButton(p);
+                            }
                         }
                     }
-                }
+
 
                 break;
             case Constants.HEADER_LOCATION:
@@ -899,6 +946,7 @@ public class CoordinatorGameScreen extends AppCompatActivity {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case Constants.MESSAGE_READ:
+                    Log.i(TAG, "CLient id: " + msg.arg1);
                     Log.i(TAG, "Message READ: " + msg.obj);
                     parseMessage((String) msg.obj, msg.arg1);
                     break;
@@ -909,14 +957,48 @@ public class CoordinatorGameScreen extends AppCompatActivity {
                     //Todo activity dinges
                     break;
                 case Constants.NEW_CONNECTION:
-                    Log.i(TAG, "NEW CONNECTION");
+                    Log.i(TAG, "NEW CONNECTION : " + msg.obj.toString());
                     //The view mainactivity view is edited to show the amount of joined players
-                    ((TextView)(findViewById(R.id.amount_players))).setText(String.valueOf(msg.obj));
+                    ((TextView)(findViewById(R.id.amount_players))).setText(String.valueOf(msg.arg1));
                     findViewById(R.id.btn_start).setEnabled(true);
+                    playerIds.add((Integer)msg.obj);
                     //For every new connection a player is added to the game.
-                    game.setPlayerAmount((Integer) msg.obj);
+                    game.setPlayerAmount((Integer) msg.arg1);
                     break;
             }
         }
     };
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        //super.onNewIntent(intent);
+        Log.d(TAG, "NFC FOUND: " + intent.getAction());
+        if(NfcAdapter.ACTION_NDEF_DISCOVERED.equals(intent.getAction())) {
+            coords = reader.readFromIntent(intent);
+            Log.d(TAG, "LOCATION: " + coords);
+            int x = Character.getNumericValue(coords.charAt(1));
+            int y = Character.getNumericValue(coords.charAt(3));
+            Location location = new Location(x, y);
+            // Sets players location on the map
+            gameMap.setPlayerLocation(location, game.getPlayer(HOSTPLAYERID));
+            // Sets maplocation visible
+            locationFound(location);
+            // Finishes a locationTask if possible
+            finishLocationTask();
+        }
+    }
+
+    @Override
+    public void onPause(){
+        super.onPause();
+        if (nfcAdapter!=null) {
+            nfcAdapter.disableForegroundDispatch(this);
+        }
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        nfcAdapter.enableForegroundDispatch(this, pendingIntent, null, null);
+    }
 }
