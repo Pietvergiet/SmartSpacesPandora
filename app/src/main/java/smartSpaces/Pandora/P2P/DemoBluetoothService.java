@@ -37,10 +37,9 @@ public class DemoBluetoothService extends FragmentActivity {
 
     private static final String TAG = "BActivity";
 
-    private TextView tekst;
+    private TextView text;
     private TextView messageView;
     private EditText editText;
-    private LinearLayout messageLayout;
     private ArrayAdapter<String> mNewDevicesArrayAdapter;
     private ArrayList<String> clients;
     private ListView messageListView;
@@ -53,7 +52,7 @@ public class DemoBluetoothService extends FragmentActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bluetooth);
-        tekst = findViewById(R.id.textView);
+        text = findViewById(R.id.textView);
         messageView = findViewById(R.id.messageView);
         editText = findViewById(R.id.messageSend);
         mNewDevicesArrayAdapter = new ArrayAdapter<>(this, R.layout.device_name);
@@ -87,19 +86,19 @@ public class DemoBluetoothService extends FragmentActivity {
         String address = extras.getString(DeviceListActivity.EXTRA_DEVICE_ADDRESS);
         // Get the BluetoothDevice object
         BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(address);
-        tekst.setText("NIEWU: " + address);
+        text.setText("NIEWU: " + address);
         int counter = 0;
         mBluetoothAdapter.cancelDiscovery();
         myBluetoothService.join(device);
-        tekst.setText("Waiting for connection");
+        text.setText("Waiting for connection");
         while (!myBluetoothService.isClientConnected()) {
             counter++;
             if (counter%100 == 0) {
-                tekst.setText(tekst.getText() + ".");
+                text.setText(text.getText() + ".");
             }
 
         }
-        tekst.setText("Connected to: " + myBluetoothService.getHostName());
+        text.setText("Connected to: " + myBluetoothService.getHostName());
     }
 
     public void startHost(View view) {
@@ -192,7 +191,7 @@ public class DemoBluetoothService extends FragmentActivity {
                     clients.add(myBluetoothService.getConnectedClients().toString());
                     String text = "Connected clients: " + clients.toString();
                     Log.i(TAG, "Displayed connections: " + text);
-                    tekst.setText(text);
+                    DemoBluetoothService.this.text.setText(text);
                     break;
             }
         }

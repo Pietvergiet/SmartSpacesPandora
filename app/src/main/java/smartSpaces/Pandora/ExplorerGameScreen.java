@@ -53,7 +53,7 @@ import smartSpaces.Pandora.Picklock.R;
 public class ExplorerGameScreen extends AppCompatActivity implements SensorEventListener {
 
     // controller stuff
-    private GameClient game;
+//    private GameClient game;
     BluetoothServiceFragment fragment;
     private Player player;
     Context view;
@@ -75,7 +75,7 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
     //NFC stuff
     NfcAdapter nfcAdapter;
     PendingIntent pendingIntent;
-    IntentFilter writeTagFilters[];
+//    IntentFilter writeTagFilters[];
     Context context;
     public String coords = "";
     NFCReader reader = new NFCReader();
@@ -137,7 +137,6 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
         tagDetected.addCategory(Intent.CATEGORY_DEFAULT);
 
         // controller stuff: ===================================
-        this.game = new GameClient();
         this.player = new Player(false);
 
         FragmentTransaction transaction = this.getSupportFragmentManager().beginTransaction();

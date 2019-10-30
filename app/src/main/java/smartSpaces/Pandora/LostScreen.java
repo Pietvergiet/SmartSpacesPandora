@@ -9,14 +9,19 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import smartSpaces.Pandora.P2P.Constants;
 import smartSpaces.Pandora.Picklock.R;
 
 public class LostScreen extends AppCompatActivity {
+    private int role;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_lost_screen);
+
+        Bundle b = getIntent().getExtras();
+        role = b.getInt("role");
 
         Typeface horrorFont = Typeface.createFromAsset(getAssets(), "buried-before.before-bb.ttf");
         Typeface comicFont = Typeface.createFromAsset(getAssets(), "Bangers-Regular.ttf");
@@ -31,9 +36,15 @@ public class LostScreen extends AppCompatActivity {
     }
 
     public void startNewGame(View view) {
-        // check if explorer or coordinator
-        Intent intent = new Intent(this, ExplorerGameScreen.class);
-        startActivity(intent);
+        if (role == Constants.COORDINATOR_ROLE) {
+            // is coordinator
+            Intent intent = new Intent(this, CoordinatorGameScreen.class);
+            startActivity(intent);
+        } else if (role == Constants.EXPLORER_ROLE) {
+            // is explorer
+            Intent intent = new Intent(this, ExplorerGameScreen.class);
+            startActivity(intent);
+        }
     }
 
     public void goToHome(View view) {

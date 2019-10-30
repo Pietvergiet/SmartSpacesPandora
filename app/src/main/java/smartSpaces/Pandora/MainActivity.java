@@ -34,9 +34,6 @@ import static android.content.pm.PackageManager.PERMISSION_DENIED;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
 
-    private int EXPLORER_ROLE = 1;
-    private int COORDINATOR_ROLE = 0;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,7 +66,7 @@ public class MainActivity extends AppCompatActivity {
 //        startBluetooth(false);
 //        cController = new ClientGameController(newGame, this);
         Intent intent = new Intent(this, InstructionScreen.class);
-        intent.putExtra("role", EXPLORER_ROLE);
+        intent.putExtra("role", Constants.EXPLORER_ROLE);
         startActivity(intent);
 //        cController = new ClientGameController(newGame, this);
     }
