@@ -85,6 +85,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
     private HashMap<MotionActivityType, Integer> concurActivityies;
     private HashMap<MotionActivityType, CountDownTimer> concurActivityiesTimers;
     public int lastScannedObject;
+    private HashMap<Location, ImageView> objectImages = new HashMap<>();
     //endregion
 
     //region View variables
@@ -693,6 +694,8 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
         ImageView imageView = new ImageView(this);
         imageView.setImageResource(resId);
 
+        objectImages.put(location, imageView);
+
         RelativeLayout relativeLayout = findViewById(R.id.map_objects);
 
         RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(stepsize, stepsize);
@@ -1015,6 +1018,10 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
             public void onFinish() {
                 Log.i("MAPTIMER", "TIMER DONE: " + location.getX() + " " + location.getY());
                 gameMap.setInvisible(location);
+                if (objectImages.get(location) != null) {
+                    ImageView objectImage = objectImages.get(location);
+                    objectImage.setVisibility(View.GONE);
+                }
                 drawMap();
             }
 
