@@ -62,7 +62,7 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
     public int lastScannedObject;
 
     // UI stuff
-    public long TASKTIME = 300000 * 1000;
+    public long TASKTIME = 30 * 1000;
     public long TASKTIME_INTERVAL = 100;
     public long N_PANELS = 4;
     private int EXPLORER_ROLE = 1;
