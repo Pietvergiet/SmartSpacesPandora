@@ -36,7 +36,7 @@ public class WinScreen extends AppCompatActivity {
         Button btnNew = findViewById(R.id.new_game);
         Button home = findViewById(R.id.home);
         TextView tasksCompletedView = findViewById(R.id.tasks_completed);
-        tasksCompletedView.setText(tasksCompleted);
+        tasksCompletedView.setText(Integer.toString(tasksCompleted));
 
         win.setTypeface(comicFont);
         btnNew.setTypeface(horrorFont);

@@ -33,14 +33,14 @@ public class PanelTask extends Task{
 
     public void buildDescription() {
 //        Log.i("PANELTASK", "iscon" + isConcurrent());
-        if (isConcurrent()){
+        if (super.isConcurrent()){
 //            Log.i("PANELTASK", concurPanels.toString());
             ArrayList<String> d = new ArrayList<>();
             for (Panel p: concurPanels.keySet()) {
                 d.add(p.getVerb() + " the " + p.getObject());
             }
             //voor de Unit test gaat TextUtils.join fout, maar geen idee waardoor
-//            super.description = TextUtils.join(",", d);
+            super.description = TextUtils.join(",", d);
 
         } else {
             String desc = taskPanel.getVerb() + " the " + taskPanel.getObject();

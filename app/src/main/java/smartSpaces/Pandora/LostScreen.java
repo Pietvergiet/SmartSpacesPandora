@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -32,8 +33,8 @@ public class LostScreen extends AppCompatActivity {
         Button btnNew = findViewById(R.id.new_game);
         Button home = findViewById(R.id.home);
         TextView tasksCompletedView = findViewById(R.id.tasks_completed);
-
-        tasksCompletedView.setText(tasksCompleted);
+//        Log.i("LOST", tasksCompleted+ " ");
+        tasksCompletedView.setText(Integer.toString(tasksCompleted));
         lost.setTypeface(comicFont);
         btnNew.setTypeface(horrorFont);
         home.setTypeface(horrorFont);

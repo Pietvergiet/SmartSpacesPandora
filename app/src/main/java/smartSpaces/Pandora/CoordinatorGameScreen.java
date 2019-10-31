@@ -89,8 +89,8 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
     //endregion
 
     //region View variables
-    private long GAMETIME = 10 * 60 * 1000;
-    private long TASKTIME = 3000 * 1000;
+    private long GAMETIME =  10 * 60 * 1000;
+    private long TASKTIME = 30 * 1000;
     private long GAMETIME_INTERVAL = 1000;
     private long TASKTIME_INTERVAL = 100;
     private long MAPTILE_VISIBLE = 2 * 60 * 1000;
@@ -237,7 +237,6 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
 
         initMap();
         // Demo test stuff
-        gameMap.addObject(new MapObject(ObjectType.LOCK), new Location(0, 0));
 
         initButtons();
         initPlayers();
@@ -368,7 +367,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
         Player player = game.getPlayer(id);
         TaskType rTask = getRandomTaskType(id);
 //        TaskType rTask = id!=HOSTPLAYERID ?  TaskType.MOTION : TaskType.PANEL;
-//        TaskType rTask = TaskType.MOTION;
+//        TaskType rTask = TaskType.LOCATION;
         Random r = new Random();
         Task task = null;
         switch (rTask) {
@@ -409,7 +408,8 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
                 task = new MotionTask(rtype, true);
                 break;
             case LOCATION:
-                task = new LocationTask(randomMapObject());
+                task = new LocationTask(new MapObject(ObjectType.LOCK));
+//                task = new LocationTask(randomMapObject());
                 break;
             case LOCATION_CONCURRENT:
                 HashSet<MapObject> objects = new HashSet<>();
@@ -736,11 +736,12 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
     }
 
     public void goToLost() {
-        finish();
+
         Intent intent = new Intent(this, LostScreen.class);
         intent.putExtra("role", COORDINATOR_ROLE);
         intent.putExtra("tasks", game.getTasksComplete());
         startActivity(intent);
+//        finish();
     }
 
     //endregion
@@ -857,7 +858,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
         //Find which player the completed task belonged to
         for (Map.Entry<Player, Task> pt : pTasks.entrySet()) {
             if (playerId != pt.getKey().getId() && pt.getValue() instanceof MotionTask) {
-                Log.i("TASKTYPE IN TASKS", ((MotionTask) pt.getValue()).getMotionType().toString() + ":" + pt.getValue().getDescription());
+//                Log.i("TASKTYPE IN TASKS", ((MotionTask) pt.getValue()).getMotionType().toString() + ":" + pt.getValue().getDescription());
                 if (pt.getValue().isConcurrent() && concurActivityies.containsKey(task)) {
                     if(concurActivityies.get(task) == game.getPlayerAmount()) {
                         game.completeTask();
@@ -866,7 +867,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
                         if (pt.getKey().getId() == HOSTPLAYERID) {
                             taskCompleted();
                         }
-                        Log.i("MOTINOFINISJ", "FINIS");
+                        Log.i("MOTINOFINISJ", "FINIS: " + task.toString());
                     }
                 } else {
                     if (((MotionTask) pt.getValue()).getMotionType() == task) {
@@ -973,6 +974,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
                                 taskCompleted();
                             }
                             newTask(pTask.getKey().getId());
+                            Log.i(TAG, "LOCATION FINISHEDSFSDFSDFS");
                         }
                     }
                 }
@@ -1079,6 +1081,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
                 if (activity.equals(Constants.TASK_FAILED)) {
                     failTask(playerId);
                 } else if (index >= 0) {
+                    Log.i(TAG, message);
                     finishMotionTask(MotionActivityType.valueOf(Integer.parseInt(activity)), playerId);
                 }
                 break;
