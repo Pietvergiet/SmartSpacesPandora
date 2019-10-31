@@ -71,6 +71,7 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
     public Boolean hasTask = false;
     public Typeface horrorFont;
     public Typeface pixelFont;
+    private CountDownTimer taskTimer;
 
     //NFC stuff
     NfcAdapter nfcAdapter;
@@ -90,6 +91,8 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
     private Sensor accelerometer, gyroscope;
     private double accXValue, accYValue, accZValue;
     private double gyroXvalue, gyroYValue, gyroZValue;
+
+
 
 
     //ALL VARIABLES FOR PICKLOCK
@@ -295,8 +298,10 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
             GifImageView animation = findViewById(R.id.animation);
             animation.setImageResource(R.drawable.safeanimation);
         }
-
-        CountDownTimer taskTimer = new CountDownTimer(TASKTIME, TASKTIME_INTERVAL) {
+        if(taskTimer != null) {
+            taskTimer.cancel();
+        }
+        taskTimer = new CountDownTimer(TASKTIME, TASKTIME_INTERVAL) {
 
             /**
              * For every tick update the progressbar
