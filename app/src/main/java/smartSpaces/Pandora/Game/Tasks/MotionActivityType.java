@@ -7,7 +7,7 @@ import smartSpaces.Pandora.Game.Map.ObjectType;
 
 public enum MotionActivityType {
 
-    PICK_LOCK(-1, ObjectType.LOCK),
+    PICK_LOCK(5, ObjectType.LOCK),
     RAISE_FLAG(0, ObjectType.ROPE),
     PIROUETTE(3),
     HOLD_IN_PLACE(1),

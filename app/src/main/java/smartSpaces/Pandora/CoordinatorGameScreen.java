@@ -367,7 +367,8 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
     private Task randomTaskForPlayer(int id) {
         Player player = game.getPlayer(id);
         TaskType rTask = getRandomTaskType(id);
-//        TaskType rTask = TaskType.LOCATION_CONCURRENT;
+//        TaskType rTask = id!=HOSTPLAYERID ?  TaskType.MOTION : TaskType.PANEL;
+//        TaskType rTask = TaskType.MOTION;
         Random r = new Random();
         Task task = null;
         switch (rTask) {
@@ -391,7 +392,11 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
             case MOTION:
                 MotionActivityType gtype = randomMotionActivityType(false);
                 Log.i("MOTIonTTYPER", gtype.toString());
+                if (id == HOSTPLAYERID && gtype.getResource() == MotionActivityType.PICK_LOCK.getResource()) {
+                    gtype = MotionActivityType.SHAKE_PHONE;
+                }
                 task = new MotionTask(gtype);
+//                task = new MotionTask(MotionActivityType.PICK_LOCK);
                 break;
             case MOTION_LOCATION:
                 MotionActivityType type = randomMotionActivityType(true);
