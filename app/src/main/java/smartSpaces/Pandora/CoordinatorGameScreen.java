@@ -338,18 +338,26 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
 
         for (int id : playerIds) {
             Task task = randomTaskForPlayer(id);
+            newTask(id);
 //            game.newTask(game.getPlayer(id), task);
-            if (id != HOSTPLAYERID) {
-                //Demotask
-                game.newTask(game.getPlayer(id), new MotionTask(MotionActivityType.PICK_LOCK));
-                //Demotask
-                sendNewTask(id);
-            } else {
-                // Demotask
-                game.newTask(game.getPlayer(id), new MotionTask(MotionActivityType.PICK_LOCK));
-                //Demotask
-                setTask(task.getDescription());
-            }
+//            if (id != HOSTPLAYERID) {
+////                //Demotask
+////                game.newTask(game.getPlayer(id), new MotionTask(MotionActivityType.PICK_LOCK));
+//////                game.newTask(game.getPlayer(id), new PanelTask(panels.get(0)));
+////                //Demotask
+//                sendNewTask(id);
+//            } else {
+//                // Demotask
+//                Task demotask = new MotionTask(MotionActivityType.PICK_LOCK);
+////                PanelTask demotask =  new PanelTask(panels.get(0));
+//////                game.newTask(game.getPlayer(id), new MotionTask(MotionActivityType.PICK_LOCK));
+////                game.newTask(game.getPlayer(id), task);
+////                setTask(demotask.getDescription());
+//                //Demotask
+//
+//
+//                setTask(task.getDescription());
+//            }
         }
     }
 
@@ -841,6 +849,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
         //Find which player the completed task belonged to
         for (Map.Entry<Player, Task> pt : pTasks.entrySet()) {
             if (playerId != pt.getKey().getId() && pt.getValue() instanceof MotionTask) {
+                Log.i("TASKTYPE IN TASKS", ((MotionTask) pt.getValue()).getMotionType().toString() + ":" + pt.getValue().getDescription());
                 if (pt.getValue().isConcurrent() && concurActivityies.containsKey(task)) {
                     if(concurActivityies.get(task) == game.getPlayerAmount()) {
                         game.completeTask();
@@ -877,6 +886,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
         //Loop through all playerTasks
         for (Map.Entry<Player, Task> pTask : game.getPlayerTasks().entrySet()) {
             if (pTask.getValue() instanceof PanelTask) {
+                Log.i("FINISHBUTToN", "ISTASK");
                 PanelTask task = (PanelTask) pTask.getValue();
                 if (task.isConcurrent()) {
                     // Set panel on pressed.
@@ -890,6 +900,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
                     }
                 } else {
                     // If panel being pressed is the same complete the task
+                    Log.i("FINISHBUTToN", "Is bUtton");
                     if (p.getId() == task.getTaskPanel().getId()) {
                         game.completeTask();
                         if (pTask.getKey().getId() == HOSTPLAYERID) {
@@ -925,6 +936,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
         // Loop through all playerTasks
         for (Map.Entry<Player, Task> pTask : game.getPlayerTasks().entrySet()) {
             if (pTask.getValue() instanceof LocationTask) {
+
                 LocationTask lTask = (LocationTask) pTask.getValue();
                 if (lTask.isConcurrent()) {
                     ArrayList<MapObject> objects = lTask.getMapObjects();
@@ -1108,12 +1120,9 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case Constants.MESSAGE_READ:
-                    Log.i(TAG, "CLient id: " + msg.arg1);
-                    Log.i(TAG, "Message READ: " + msg.obj);
+//                    Log.i(TAG, "CLient id: " + msg.arg1);
+//                    Log.i(TAG, "Message READ: " + msg.obj);
                     parseMessage((String) msg.obj, msg.arg1);
-                    break;
-                case Constants.ACTIVITY_RECOGNIZED:
-                    //Todo activity dinges
                     break;
                 case Constants.NEW_CONNECTION:
                     Log.i(TAG, "NEW CONNECTION : " + msg.obj.toString());
@@ -1128,6 +1137,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
         }
     };
 
+    //region nfc
     @Override
     protected void onNewIntent(Intent intent) {
         //super.onNewIntent(intent);
@@ -1160,7 +1170,9 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
         super.onResume();
         nfcAdapter.enableForegroundDispatch(this, pendingIntent, null, null);
     }
+    //endregion
 
+    //region lockpickmeuk
     @Override
     public void onSensorChanged(SensorEvent event) {
         // TODO: is always trying to recognize activity when it has last scanned an object. --> fix?
@@ -1454,5 +1466,5 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) { }
-
+    //endregion
 }
