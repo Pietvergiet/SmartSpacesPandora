@@ -115,7 +115,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
     NFCReader reader = new NFCReader();
 
     //Activity Recognition meuk
-    int STABLE_AMOUNT = 9;
+    int STABLE_AMOUNT = 10;
     double maxValue;
     double maxCount;
     private boolean accChanged, gyroChanged, magnetoChanged;
@@ -179,8 +179,8 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         gyroscope = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
         //magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-        sensorManager.registerListener(this, accelerometer, sensorManager.SENSOR_DELAY_GAME);
-        sensorManager.registerListener(this, gyroscope, sensorManager.SENSOR_DELAY_GAME);
+        sensorManager.registerListener(this, accelerometer, sensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager.registerListener(this, gyroscope, sensorManager.SENSOR_DELAY_NORMAL);
         //sensorManager.registerListener(this, magnetometer, sensorManager.SENSOR_DELAY_NORMAL);
 
 
@@ -1168,6 +1168,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
         if(gameStart) {
             if (gameMap.getPlayerLocations().get(game.getPlayer(HOSTPLAYERID)) != null && gameMap.getPlayerLocations().get(game.getPlayer(HOSTPLAYERID)).isLocation(gameMap.getObjectLocationFromType(ObjectType.LOCK))) {
                 Log.d("SENSOR", "LOCKPIKC??");
+                Log.i("LOCKPICK", picklock.toString());
                 if (!lockpickbool) {
                     lockpickbool = true;
                     Lockpicker();
@@ -1179,15 +1180,20 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
 
                     try {
                         double resultpick = WekaClassifierPicklock.classify(arrayPicklock);
+                        //Log.i("LOCKPICK", String.valueOf(resultpick));
+                        Log.i("LOCKPICK", String.valueOf(picklockstable));
                         if (picklockstable.size() == 0) {
                             startTime = System.nanoTime();
+                            Log.i("LOCKPICK", "Start tijd");
                         }
+
                         picklockstable.add(resultpick);
-                        if (picklockstable.size() == STABLE_AMOUNT) {
+                        if (picklockstable.size() == STABLE_AMOUNT-1) {
+                            Log.i("LOCKPICK", "Ik heb een motherfucking stable amount kut");
                             String textresultpicklock;
                             elapsedTime = (int) ((System.nanoTime() - startTime) / 1000000);
-                            resultpick = getBestClassifiedActivity();
-
+                            resultpick = getBestClassifiedPicklock();
+                            Log.i("LOCKPICK", "resultpick: " + String.valueOf(resultpick));
                             if (resultpick == 0.0) {
                                 textresultpicklock = "Left";
                                 flatTime = 0;
@@ -1196,6 +1202,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
                                 downTime = 0;
                                 leftTime = leftTime + elapsedTime;
                                 picklockstable.clear();
+                                Log.i("LOCKPICK", "Ik heb een motherfucking LINKS");
                                 if (activity.equals(textresultpicklock)) {
                                     Lockpickerresult(leftTime);
                                 }
@@ -1207,6 +1214,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
                                 leftTime = 0;
                                 downTime = downTime + elapsedTime;
                                 picklockstable.clear();
+                                Log.i("LOCKPICK", "Ik heb een motherfucking DOWN");
                                 if (activity.equals(textresultpicklock)) {
                                     Lockpickerresult(downTime);
                                 }
@@ -1219,6 +1227,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
 
                                 flatTime = flatTime + elapsedTime;
                                 picklockstable.clear();
+                                Log.i("LOCKPICK", "Ik heb een motherfucking FLAT");
                                 if (activity.equals(textresultpicklock)) {
                                     Lockpickerresult(flatTime);
                                 }
@@ -1232,6 +1241,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
 
                                 rightTime = rightTime + elapsedTime;
                                 picklockstable.clear();
+                                Log.i("LOCKPICK", "Ik heb een motherfucking RIGHT");
                                 if (activity.equals(textresultpicklock)) {
                                     Lockpickerresult(rightTime);
                                 }
@@ -1242,6 +1252,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
                                 flatTime = 0;
                                 textresultpicklock = "Middle";
                                 middleTime = middleTime + elapsedTime;
+                                Log.i("LOCKPICK", "Ik heb een motherfucking MIDDLE");
                                 picklockstable.clear();
                                 if (activity.equals(textresultpicklock)) {
                                     Lockpickerresult(middleTime);
@@ -1313,11 +1324,34 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
         for (int i = 0; i < activitystable.size(); ++i) {
             int count = 0;
             for (int j = 0; j < activitystable.size(); ++j) {
-                if (activitystable.get(j) == activitystable.get(i)) ++count;
+                if (activitystable.get(j) == activitystable.get(i)){
+                    ++count;
+                }
             }
             if (count > maxCount) {
                 maxCount = count;
                 maxValue = activitystable.get(i);
+            }
+        }
+
+        result = maxValue;
+        maxValue = -1;
+        maxCount = -1;
+        return result;
+    }
+
+    private double getBestClassifiedPicklock() {
+        double result;
+        for (int i = 0; i < picklockstable.size(); ++i) {
+            int count = 0;
+            for (int j = 0; j < picklockstable.size(); ++j) {
+                if (picklockstable.get(j) == picklockstable.get(i)){
+                    ++count;
+                }
+            }
+            if (count > maxCount) {
+                maxCount = count;
+                maxValue = picklockstable.get(i);
             }
         }
 
@@ -1377,6 +1411,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
 
     public void Lockpickerresult(int time) {
         if (ACTIVITY_RECOGNITION_LENGTH < time) {
+            Log.i("LOCKPICK", String.valueOf(time));
             picklock.remove(0);
             Vibrate();
             Log.i("LOCKPICK", picklock.toString());
