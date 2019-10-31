@@ -337,7 +337,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
 
         for (int id : playerIds) {
             Task task = randomTaskForPlayer(id);
-            game.newTask(game.getPlayer(id), task);
+//            game.newTask(game.getPlayer(id), task);
             if (id != HOSTPLAYERID) {
                 //Demotask
                 game.newTask(game.getPlayer(id), new MotionTask(MotionActivityType.PICK_LOCK));
