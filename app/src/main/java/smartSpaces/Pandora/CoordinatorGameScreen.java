@@ -731,7 +731,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
         finish();
         Intent intent = new Intent(this, WinScreen.class);
         intent.putExtra("role", COORDINATOR_ROLE);
-        intent.putExtra("task", game.getTasksComplete());
+        intent.putExtra("tasks", game.getTasksComplete());
         startActivity(intent);
     }
 
@@ -739,7 +739,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
         finish();
         Intent intent = new Intent(this, LostScreen.class);
         intent.putExtra("role", COORDINATOR_ROLE);
-        intent.putExtra("task", game.getTasksComplete());
+        intent.putExtra("tasks", game.getTasksComplete());
         startActivity(intent);
     }
 
