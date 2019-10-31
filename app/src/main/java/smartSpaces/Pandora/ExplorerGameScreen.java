@@ -208,10 +208,12 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
 
     public void handleReceiveGameEnd(String[] msg) {
         String result = msg[1];
+        int tasks = Integer.parseInt(msg[2]);
+        Log.d(TAG, "handleReceiveGameEnd: tasks completed: " + tasks);
         if (result.equals(Constants.WIN)) {
-            goToWin();
+            goToWin(tasks);
         } else if (result.equals(Constants.LOSE)) {
-            goToLost();
+            goToLost(tasks);
         }
     }
 
@@ -462,15 +464,17 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
         });
     }
 
-    public void goToWin() {
+    public void goToWin(int tasks) {
         Intent intent = new Intent(this, WinScreen.class);
         intent.putExtra("role", EXPLORER_ROLE);
+        intent.putExtra("tasks", tasks);
         startActivity(intent);
     }
 
-    public void goToLost() {
+    public void goToLost(int tasks) {
         Intent intent = new Intent(this, LostScreen.class);
         intent.putExtra("role", EXPLORER_ROLE);
+        intent.putExtra("tasks", tasks);
         startActivity(intent);
     }
 
@@ -511,7 +515,7 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
                         if(picklockstable.size() == STABLE_AMOUNT){
                             String textresultpicklock;
                             elapsedTime = (int)((System.nanoTime() - startTime)/1000000);
-                            resultpick = getBestClassifiedActivity();
+                            resultpick = getBestClassifiedPicklock();
 
                             if(resultpick == 0.0){
                                 textresultpicklock = "Left";
@@ -650,6 +654,27 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
         return result;
     }
 
+    private double getBestClassifiedPicklock() {
+        double result;
+        for (int i = 0; i < picklockstable.size(); ++i) {
+            int count = 0;
+            for (int j = 0; j < picklockstable.size(); ++j) {
+                if (picklockstable.get(j) == picklockstable.get(i)){
+                    ++count;
+                }
+            }
+            if (count > maxCount) {
+                maxCount = count;
+                maxValue = picklockstable.get(i);
+            }
+        }
+
+        result = maxValue;
+        maxValue = -1;
+        maxCount = -1;
+        return result;
+    }
+
     private Double[] getSensorData() {
         accChanged = false;
         gyroChanged = false;
@@ -707,6 +732,7 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
                 activity = picklock.get(0).toString();
             } else {
                 String msg = Constants.HEADER_TASK + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + MotionActivityType.PICK_LOCK.getResource();
+                Log.d(TAG, "Lockpickerresult: message: " + msg);
                 fragment.sendMessage(msg);
                 lockpickbool = false;
                 done = true;

@@ -9,6 +9,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import org.w3c.dom.Text;
+
 import java.lang.reflect.Type;
 
 import smartSpaces.Pandora.P2P.Constants;
@@ -16,6 +18,7 @@ import smartSpaces.Pandora.Picklock.R;
 
 public class WinScreen extends AppCompatActivity {
     private int role;
+    private int tasksCompleted;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,6 +27,7 @@ public class WinScreen extends AppCompatActivity {
 
         Bundle b = getIntent().getExtras();
         role = b.getInt("role");
+        tasksCompleted = b.getInt("tasks");
 
         Typeface horrorFont = Typeface.createFromAsset(getAssets(), "buried-before.before-bb.ttf");
         Typeface comicFont = Typeface.createFromAsset(getAssets(), "Bangers-Regular.ttf");
@@ -31,6 +35,8 @@ public class WinScreen extends AppCompatActivity {
         TextView win = findViewById(R.id.win);
         Button btnNew = findViewById(R.id.new_game);
         Button home = findViewById(R.id.home);
+        TextView tasksCompletedView = findViewById(R.id.tasks_completed);
+        tasksCompletedView.setText(tasksCompleted);
 
         win.setTypeface(comicFont);
         btnNew.setTypeface(horrorFont);

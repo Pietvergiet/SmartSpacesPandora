@@ -14,6 +14,7 @@ import smartSpaces.Pandora.Picklock.R;
 
 public class LostScreen extends AppCompatActivity {
     private int role;
+    private int tasksCompleted;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,6 +23,7 @@ public class LostScreen extends AppCompatActivity {
 
         Bundle b = getIntent().getExtras();
         role = b.getInt("role");
+        tasksCompleted = b.getInt("tasks");
 
         Typeface horrorFont = Typeface.createFromAsset(getAssets(), "buried-before.before-bb.ttf");
         Typeface comicFont = Typeface.createFromAsset(getAssets(), "Bangers-Regular.ttf");
@@ -29,7 +31,9 @@ public class LostScreen extends AppCompatActivity {
         TextView lost = findViewById(R.id.lost);
         Button btnNew = findViewById(R.id.new_game);
         Button home = findViewById(R.id.home);
+        TextView tasksCompletedView = findViewById(R.id.tasks_completed);
 
+        tasksCompletedView.setText(tasksCompleted);
         lost.setTypeface(comicFont);
         btnNew.setTypeface(horrorFont);
         home.setTypeface(horrorFont);

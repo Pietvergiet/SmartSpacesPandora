@@ -718,6 +718,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
         finish();
         Intent intent = new Intent(this, WinScreen.class);
         intent.putExtra("role", COORDINATOR_ROLE);
+        intent.putExtra("task", game.getTasksComplete());
         startActivity(intent);
     }
 
@@ -725,6 +726,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
         finish();
         Intent intent = new Intent(this, LostScreen.class);
         intent.putExtra("role", COORDINATOR_ROLE);
+        intent.putExtra("task", game.getTasksComplete());
         startActivity(intent);
     }
 
@@ -737,7 +739,8 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
     }
 
     private void sendGameEnd(String winOrLose) {
-        bServiceFragment.sendMessage(Constants.HEADER_END + Constants.MESSAGE_SEPARATOR + winOrLose);
+        Log.d(TAG, "sendGameEnd: tasks completed: " + game.getTasksComplete());
+        bServiceFragment.sendMessage(Constants.HEADER_END + Constants.MESSAGE_SEPARATOR + winOrLose + Constants.MESSAGE_SEPARATOR + game.getTasksComplete());
     }
 
     private void sendNewTask(int playerId) {
@@ -1205,6 +1208,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
 
                                 if (activity.equals(textresultpicklock)) {
                                     Lockpickerresult(leftTime);
+                                    Log.d(TAG, "onSensorChanged: left");
                                 }
                             } else if (resultpick == 1.0) {
                                 textresultpicklock = "Down";
@@ -1217,6 +1221,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
 
                                 if (activity.equals(textresultpicklock)) {
                                     Lockpickerresult(downTime);
+                                    Log.d(TAG, "onSensorChanged: down");
                                 }
                             } else if (resultpick == 2.0) {
                                 textresultpicklock = "Flat";
@@ -1230,6 +1235,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
 
                                 if (activity.equals(textresultpicklock)) {
                                     Lockpickerresult(flatTime);
+                                    Log.d(TAG, "onSensorChanged: flat");
                                 }
                             } else if (resultpick == 3.0) {
                                 textresultpicklock = "Right";
@@ -1244,6 +1250,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
 
                                 if (activity.equals(textresultpicklock)) {
                                     Lockpickerresult(rightTime);
+                                    Log.d(TAG, "onSensorChanged: right");
                                 }
                             } else if (resultpick == 4.0) {
                                 rightTime = 0;
@@ -1256,6 +1263,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
                                 picklockstable.clear();
                                 if (activity.equals(textresultpicklock)) {
                                     Lockpickerresult(middleTime);
+                                    Log.d(TAG, "onSensorChanged: middle");
                                 }
                             } else {
                                 picklockstable.clear();

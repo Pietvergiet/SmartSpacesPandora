@@ -29,4 +29,5 @@
     <string name="Join">Join</string>
     <string name="select_device">Select the host from the list.</string>
     <string name="no_devices_found">No devices found.</string>
+    <string name="stats_tasks">\u0020 tasks were completed</string>
 </resources>
