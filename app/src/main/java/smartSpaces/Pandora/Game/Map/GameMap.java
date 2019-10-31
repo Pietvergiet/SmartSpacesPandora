@@ -99,7 +99,7 @@ public class GameMap {
      */
     public Location getObjectLocation(MapObject object){
         for(Map.Entry<Location, MapObject> p : objects.entrySet()){
-            Log.i("GETOBJECTLOCTAIN", p.getValue().getName() + " : " + object.getName());
+//            Log.i("GETOBJECTLOCTAIN", p.getValue().getName() + " : " + object.getName());
             if (p.getValue().getResource() == object.getResource()) {
                 return p.getKey();
             }

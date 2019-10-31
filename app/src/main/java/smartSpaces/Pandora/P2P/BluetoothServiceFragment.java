@@ -227,7 +227,7 @@ public class BluetoothServiceFragment extends Fragment {
 
         @Override
         public void handleMessage(Message msg) {
-            Log.d(TAG, "handleMessage: Message is received: " + msg);
+//            Log.d(TAG, "handleMessage: Message is received: " + msg);
             switch (msg.what) {
                 case Constants.MESSAGE_WRITE:
                     byte[] writeBuf = (byte[]) msg.obj;
@@ -241,7 +241,7 @@ public class BluetoothServiceFragment extends Fragment {
                     String clientName = clientId > -1 ? myBluetoothService.getConnectedClients().get(clientId).getName() : myBluetoothService.getHostName();
                     // construct a string from the valid bytes in the buffer
                     String readMessage = new String(readBuf, 0, msg.arg1);
-                    Log.i(TAG, "ClientID : " + msg.arg2);
+//                    Log.i(TAG, "ClientID : " + msg.arg2);
                     Message readMsg = cHandler.obtainMessage(
                             Constants.MESSAGE_READ, clientId, -1, readMessage);
                     readMsg.sendToTarget();
