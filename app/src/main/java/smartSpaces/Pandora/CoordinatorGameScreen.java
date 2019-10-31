@@ -114,7 +114,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
     public String coords = "";
     NFCReader reader = new NFCReader();
 
-    //Activity Recognition meuk
+    //Activity Recognition
     int STABLE_AMOUNT = 10;
     double maxValue;
     double maxCount;
@@ -1189,7 +1189,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
 
                         picklockstable.add(resultpick);
                         if (picklockstable.size() == STABLE_AMOUNT-1) {
-                            Log.i("LOCKPICK", "Ik heb een motherfucking stable amount kut");
+
                             String textresultpicklock;
                             elapsedTime = (int) ((System.nanoTime() - startTime) / 1000000);
                             resultpick = getBestClassifiedPicklock();
@@ -1202,7 +1202,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
                                 downTime = 0;
                                 leftTime = leftTime + elapsedTime;
                                 picklockstable.clear();
-                                Log.i("LOCKPICK", "Ik heb een motherfucking LINKS");
+
                                 if (activity.equals(textresultpicklock)) {
                                     Lockpickerresult(leftTime);
                                 }
@@ -1214,7 +1214,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
                                 leftTime = 0;
                                 downTime = downTime + elapsedTime;
                                 picklockstable.clear();
-                                Log.i("LOCKPICK", "Ik heb een motherfucking DOWN");
+
                                 if (activity.equals(textresultpicklock)) {
                                     Lockpickerresult(downTime);
                                 }
@@ -1227,7 +1227,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
 
                                 flatTime = flatTime + elapsedTime;
                                 picklockstable.clear();
-                                Log.i("LOCKPICK", "Ik heb een motherfucking FLAT");
+
                                 if (activity.equals(textresultpicklock)) {
                                     Lockpickerresult(flatTime);
                                 }
@@ -1241,7 +1241,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
 
                                 rightTime = rightTime + elapsedTime;
                                 picklockstable.clear();
-                                Log.i("LOCKPICK", "Ik heb een motherfucking RIGHT");
+
                                 if (activity.equals(textresultpicklock)) {
                                     Lockpickerresult(rightTime);
                                 }
@@ -1252,7 +1252,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
                                 flatTime = 0;
                                 textresultpicklock = "Middle";
                                 middleTime = middleTime + elapsedTime;
-                                Log.i("LOCKPICK", "Ik heb een motherfucking MIDDLE");
+
                                 picklockstable.clear();
                                 if (activity.equals(textresultpicklock)) {
                                     Lockpickerresult(middleTime);
