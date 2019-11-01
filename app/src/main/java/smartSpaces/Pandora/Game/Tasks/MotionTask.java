@@ -42,6 +42,7 @@ public class MotionTask extends Task{
     public MotionTask(MotionActivityType motionType, boolean isConcurrent) {
         super((isConcurrent ? TaskType.MOTION_CONCURRENT : TaskType.MOTION_LOCATION), isConcurrent);
         this.motionType = motionType;
+        buildDescription();
     }
 
     public void buildDescription() {
@@ -52,22 +53,36 @@ public class MotionTask extends Task{
                 desc = "Pick the lock";
                 break;
             case  RAISE_FLAG:
-                desc = "Let the Flag be raised";
+                if (super.isConcurrent()) {
+                    desc = "Everyone raise the Flag";
+                } else {
+                    desc = "Let the Flag be raised";
+                }
                 break;
             case PIROUETTE:
-                if (isConcurrent()) {
+                if (super.isConcurrent()) {
                     desc = "Everyone spin round, right round, like a record baby";
                 } else {
                     desc = "Make one do a Pirouette";
                 }
                 break;
             case HOLD_IN_PLACE:
-                desc = "Make one immobile for X seconds";
+                if (super.isConcurrent()) {
+                    desc = "Make everyone immobile for X seconds";
+                } else {
+                    desc = "Make one immobile for X seconds";
+                }
+
                 break;
             case SHAKE_PHONE:
-                desc = "Shake phones";
+                if (super.isConcurrent()) {
+                    desc = "Make everyone shake their phones";
+                } else {
+                    desc = "Make one shake their phone.";
+                }
                 break;
             default:
+                Log.i("MOTINO", motionType.toString() + ":" + super.isConcurrent());
                 desc = "Uncaught MotionActivity Task" + motionType.toString();
         }
         super.description = desc;
