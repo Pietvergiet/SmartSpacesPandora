@@ -153,7 +153,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
 //        showPlayersJoined(0);
         ((TextView) findViewById(R.id.amount_players)).setText("0");
 
-        game = new GameHost(200, 4);
+        game = new GameHost(30, 4);
         playerIds = new HashSet<>();
         mapTiles = new HashMap<>();
         concurActivityies = new HashMap<>();
@@ -223,7 +223,6 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
         ImageView map = findViewById(R.id.map_background);
         map.setImageBitmap(scaledbm);
         Log.d(TAG, "onCreate: Map filled");
-
     }
 
     /**
@@ -368,7 +367,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
         Player player = game.getPlayer(id);
         TaskType rTask = getRandomTaskType(id);
 //        TaskType rTask = id!=HOSTPLAYERID ?  TaskType.MOTION : TaskType.PANEL;
-//        TaskType rTask = TaskType.MOTION_CONCURRENT;
+//        TaskType rTask = TaskType.LOCATION;
         Random r = new Random();
         Task task = null;
         Log.i("RANDOMTAKS", id + "RANDOM");
@@ -413,8 +412,8 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
                 task = new MotionTask(rtype, true);
                 break;
             case LOCATION:
-                task = new LocationTask(new MapObject(ObjectType.LOCK));
-//                task = new LocationTask(randomMapObject());
+//                task = new LocationTask(new MapObject(ObjectType.LOCK));
+                task = new LocationTask(randomMapObject());
                 break;
             case LOCATION_CONCURRENT:
                 HashSet<MapObject> objects = new HashSet<>();
