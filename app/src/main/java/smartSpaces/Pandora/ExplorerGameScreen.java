@@ -623,7 +623,7 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
         if( activitystable.size() == STABLE_AMOUNT) {
             result = getBestClassifiedActivity();
             String msg;
-            if (result == 0.0 && lastScannedObject == ObjectType.ROPE.getResource()) {
+            if (result == 0.0) {
                 msg = Constants.HEADER_TASK + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + MotionActivityType.RAISE_FLAG.getResource();
             } else if (result == 1.0) {
                 msg = Constants.HEADER_TASK + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + MotionActivityType.HOLD_IN_PLACE.getResource();

@@ -1334,7 +1334,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
 //            Log.i("ACITIVEYTD", result + " ; " + ((int) result));
 //            Log.i("ACITIVEYTD", MotionActivityType.valueOf((int)result).toString());
             String msg;
-            if (result == 0.0 && lastScannedObject == ObjectType.ROPE.getResource()) {
+            if (result == 0.0) {
                 finishMotionTask(MotionActivityType.valueOf((int)result), HOSTPLAYERID);
                 msg = Constants.HEADER_TASK + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + MotionActivityType.RAISE_FLAG.getResource();
             } else{
