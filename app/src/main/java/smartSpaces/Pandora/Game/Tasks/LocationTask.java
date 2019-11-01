@@ -55,15 +55,27 @@ public class LocationTask extends Task {
     public void buildDescription(){
         StringBuilder desc = new StringBuilder();
         if (super.getTaskType() == TaskType.LOCATION) {
-            desc.append("Occupy ");
-            if (mapObject == null) {
-                desc.append(location.getX());
-                desc.append(",");
-                desc.append(location.getY());
-            } else {
-                desc.append("the ");
-                desc.append(mapObject.getName());
+//            desc.append("Occupy ");
+//            if (mapObject == null) {
+//                desc.append(location.getX());
+//                desc.append(",");
+//                desc.append(location.getY());
+//            } else {
+//                desc.append("the ");
+//                desc.append(mapObject.getName());
+
+            switch (mapObject.getObjectType()) {
+                case SHEEP:
+                    desc.append("Pet a sheep");
+                    break;
+                case HAYSTACK:
+                    desc.append("Find needle in haystack");
+                    break;
+                default:
+                    desc.append("Occupy the ");
+                    desc.append(mapObject.getName());
             }
+
             super.description = desc.toString();
         } else if (super.getTaskType() == TaskType.LOCATION_CONCURRENT){
             desc.append("Occupy these places: ");

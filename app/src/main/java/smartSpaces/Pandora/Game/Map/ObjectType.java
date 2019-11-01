@@ -11,7 +11,10 @@ public enum ObjectType {
     ROPE(1, MotionActivityType.RAISE_FLAG, false, R.drawable.flag),
     LOCK(2, MotionActivityType.PICK_LOCK, false, R.drawable.safe),
     BOMB(3, true, R.drawable.bomb),
-    TULIP(4, MotionActivityType.PIROUETTE, false, R.drawable.bomb);
+    TULIP(4, MotionActivityType.PIROUETTE, false, R.drawable.tulip),
+    HAYSTACK(5, false, R.drawable.haystack),
+    SHEEP(6, false, R.drawable.sheep),
+    CARROT(7, false, R.drawable.carrot);
 
     private int resource;
     private MotionActivityType motionType;

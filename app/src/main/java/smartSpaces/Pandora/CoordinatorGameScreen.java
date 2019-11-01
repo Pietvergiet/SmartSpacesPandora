@@ -223,7 +223,6 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
         ImageView map = findViewById(R.id.map_background);
         map.setImageBitmap(scaledbm);
         Log.d(TAG, "onCreate: Map filled");
-
     }
 
     /**
@@ -408,8 +407,8 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
                 task = new MotionTask(rtype, true);
                 break;
             case LOCATION:
-                task = new LocationTask(new MapObject(ObjectType.LOCK));
-//                task = new LocationTask(randomMapObject());
+//                task = new LocationTask(new MapObject(ObjectType.LOCK));
+                task = new LocationTask(randomMapObject());
                 break;
             case LOCATION_CONCURRENT:
                 HashSet<MapObject> objects = new HashSet<>();

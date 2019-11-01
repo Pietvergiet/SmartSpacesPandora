@@ -10,7 +10,7 @@ public class MapObject {
     }
 
     public String getName() {
-        return name;
+        return name.toLowerCase();
     }
 
     public ObjectType getObjectType() {
