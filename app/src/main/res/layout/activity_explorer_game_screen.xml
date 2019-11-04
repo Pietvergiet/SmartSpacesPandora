@@ -22,10 +22,11 @@
     <RelativeLayout
         android:id="@+id/task_container"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="wrap_content"
         android:layout_below="@+id/visualisation"
         android:layout_centerHorizontal="true"
-        android:padding="10dp"
+        android:paddingTop="30dp"
+        android:paddingBottom="30dp"
         android:paddingLeft="20dp"
         android:background="@color/black">
         <TextView
@@ -34,7 +35,6 @@
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
             android:layout_centerHorizontal="true"
-            android:layout_marginLeft="20dp"
             android:text="[Task]"
             android:textColor="@color/white"/>
     </RelativeLayout>
