@@ -619,9 +619,10 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
     private void classifyData(Double[] array) throws Exception {
         double result = WekaClassifierActivities.classify(array);
         activitystable.add(result);
-        
-        if( activitystable.size() == STABLE_AMOUNT) {
+        Log.i(TAG, result + "Class21");
+        if( activitystable.size() >= STABLE_AMOUNT) {
             result = getBestClassifiedActivity();
+            Log.i(TAG, result + "Class");
             String msg;
             if (result == 0.0) {
                 msg = Constants.HEADER_TASK + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + MotionActivityType.RAISE_FLAG.getResource();
@@ -636,6 +637,7 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
             }
 
             fragment.sendMessage(msg);
+            Log.i(TAG, "SEND ACTIVITY " + msg);
             activitystable.clear();
         }
     }
