@@ -69,7 +69,7 @@ public class LocationTask extends Task {
                     desc.append("Pet a sheep");
                     break;
                 case HAYSTACK:
-                    desc.append("Find needle in haystack");
+                    desc.append("Find the needle in a haystack");
                     break;
                 default:
                     desc.append("Occupy the ");
@@ -87,6 +87,7 @@ public class LocationTask extends Task {
                     desc.append(" & ");
                 }
                 desc.deleteCharAt(desc.length()-1);
+                desc.deleteCharAt(desc.length()-2);
             } else {
                 for (MapObject b : mapObjects){
                     desc.append("the ");

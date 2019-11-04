@@ -290,13 +290,16 @@ public class ExplorerGameScreen extends AppCompatActivity implements SensorEvent
         TextView taskView = findViewById(R.id.task);
         final ProgressBar progressBar = findViewById(R.id.progressBar);
         taskView.setText(task);
+        GifImageView animation = findViewById(R.id.animation);
 
         if (task.equals(Constants.TASK_FLAG)) {
-            GifImageView animation = findViewById(R.id.animation);
+            animation.setVisibility(View.VISIBLE);
             animation.setImageResource(R.drawable.flaganimation);
         } else if (task.equals(Constants.TASK_SAFE)) {
-            GifImageView animation = findViewById(R.id.animation);
-            animation.setImageResource(R.drawable.safeanimation);
+            animation.setVisibility(View.VISIBLE);
+            animation.setImageResource(R.drawable.safeanimation2);
+        } else {
+            animation.setVisibility(View.GONE);
         }
         if(taskTimer != null) {
             taskTimer.cancel();

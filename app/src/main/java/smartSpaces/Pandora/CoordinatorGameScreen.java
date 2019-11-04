@@ -89,7 +89,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
     //endregion
 
     //region View variables
-    private long GAMETIME =  10 * 60 * 1000;
+    private long GAMETIME =  5 * 60 * 1000;
     private long TASKTIME = 30 * 1000;
     private long GAMETIME_INTERVAL = 1000;
     private long TASKTIME_INTERVAL = 100;
@@ -402,7 +402,8 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
 //                task = new MotionTask(MotionActivityType.PICK_LOCK);
                 break;
             case MOTION_LOCATION:
-                MotionActivityType type = randomMotionActivityType(true, false);
+                MotionActivityType type = randomMotionActivityType(false, false);
+                Log.d(TAG, "randomTaskForPlayer: " + type);
                 Log.i("MOTIonTTYPER0 LOCATION", type.toString());
                 task = new MotionTask(type, randomMapObject());
                 break;
@@ -427,6 +428,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
                 task = new LocationTask(new ArrayList<>(objects));
                 break;
         }
+        Log.d(TAG, "randomTaskForPlayer: " + task);
         return task;
     }
 
@@ -442,13 +444,13 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
 //        Log.i("RANODMMOIT", objects.get(0).getObjectType().getMotionActivityType().toString());
 
             index = r.nextInt(objects.size());
-//            Log.i("RANDOMMOTIN", objects.get(index).getObjectType().toString());
+            Log.i("RANDOMMOTIN", objects.get(index).getObjectType().toString());
             while (objects.get(index).getObjectType().isHazard()) {
                 index = r.nextInt(objects.size());
             }
             result = objects.get(index).getObjectType().getMotionActivityType();
         } else if (isConcurrent){
-//            Log.i("Isconcur", "start");
+            Log.i("Isconcur", "start");
             index = r.nextInt(MotionActivityType.values().length);
             while (MotionActivityType.values()[index].getResource() == MotionActivityType.PICK_LOCK.getResource() ||
                     MotionActivityType.values()[index].getResource() == MotionActivityType.RAISE_FLAG.getResource() ||
@@ -458,7 +460,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
 //            Log.i("Isconcur", "result" + MotionActivityType.values()[index].toString());
             result = MotionActivityType.values()[index];
         } else {
-//            Log.i("isneither", "start");
+            Log.i("isneither", "start");
             index = r.nextInt(MotionActivityType.values().length);
             while (MotionActivityType.values()[index].getObjectType() != null){
                 index = r.nextInt(MotionActivityType.values().length);
@@ -466,7 +468,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
             result = MotionActivityType.values()[index];
         }
 
-        Log.i("MOTINEONDGD", index + " : " + result.toString());
+        Log.i("MOTINEONDGD", index + " : " + result);
         return result;
 //        ArrayList<MotionActivityType> activities = new ArrayList<>();
 //        for(MapObject m : objects) {
@@ -501,7 +503,17 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
     //region View updaters
 
     public void updateGameStatus() {
+        TextView tasksCompleted = findViewById(R.id.tasks_completed);
+        TextView tasksLeft = findViewById(R.id.tasks_left);
 
+        Log.d(TAG, "updateGameStatus: " + tasksCompleted);
+        Log.d(TAG, "updateGameStatus: " + tasksLeft);
+
+        Log.d(TAG, "updateGameStatus: " + game.getTasksComplete());
+        Log.d(TAG, "updateGameStatus: " + game.getTasksLeft());
+
+        tasksCompleted.setText(game.getTasksComplete() + "");
+        tasksLeft.setText(game.getTasksLeft() + ".");
     }
 
     /**
@@ -579,6 +591,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
         TextView taskView = findViewById(R.id.task);
 
         taskView.setText(task);
+        Log.d(TAG, "setTask: " + task);
 
         if (taskTimer != null) {
             taskTimer.cancel();
@@ -887,6 +900,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
 
                             concurActivityies.remove(task.getResource());
                             game.completeTask();
+                            updateGameStatus();
                             newTask(t.getKey().getId());
 
                             if (t.getKey().getId() == HOSTPLAYERID) {
@@ -898,6 +912,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
                     } else {
                         if (t.getKey().getId() != playerId &&  mTask.getMotionType() == task) {
                             game.completeTask();
+                            updateGameStatus();
                             newTask(t.getKey().getId());
                             Log.i("MOTINOFINISJ", "FINISjh");
                             if (t.getKey().getId() == HOSTPLAYERID) {
@@ -930,6 +945,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
 
                         concurActivityies.remove(task.getResource());
                         game.completeTask();
+                        updateGameStatus();
                         newTask(pt.getKey().getId());
 
                         if (pt.getKey().getId() == HOSTPLAYERID) {
@@ -941,6 +957,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
                 } else {
                     if (((MotionTask) pt.getValue()).getMotionType() == task) {
                         game.completeTask();
+                        updateGameStatus();
                         newTask(pt.getKey().getId());
                         Log.i("MOTINOFINISJ", "FINISjh");
                         if (pt.getKey().getId() == HOSTPLAYERID) {
@@ -971,6 +988,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
                     task.setPressed(p.getId());
                     if (task.isCompleted()) {
                         game.completeTask();
+                        updateGameStatus();
                         if (pTask.getKey().getId() == HOSTPLAYERID) {
                             taskCompleted();
                         }
@@ -981,6 +999,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
                     Log.i("FINISHBUTToN", "Is bUtton");
                     if (p.getId() == task.getTaskPanel().getId()) {
                         game.completeTask();
+                        updateGameStatus();
                         if (pTask.getKey().getId() == HOSTPLAYERID) {
                             taskCompleted();
                         }
@@ -1430,7 +1449,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
 //            Log.i("ACITIVEYTD", result + " ; " + ((int) result));
 //            Log.i("ACITIVEYTD", MotionActivityType.valueOf((int)result).toString());
             String msg;
-//            if (result == 0.0 && lastScannedObject == ObjectType.ROPE.getResource()) {
+//            if (result == 0.0 && lastScannedObject == ObjectType.FLAG.getResource()) {
 //                finishMotionTask(MotionActivityType.valueOf((int)result), HOSTPLAYERID);
 //                msg = Constants.HEADER_TASK + Constants.MESSAGE_SEPARATOR + "0" + Constants.MESSAGE_SEPARATOR + MotionActivityType.RAISE_FLAG.getResource();
 //            } else{

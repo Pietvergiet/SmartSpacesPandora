@@ -15,8 +15,8 @@ public interface Constants {
 
     int INSTRUCTION_DONE = 9;
 
-    String TASK_FLAG = "Raise a flag";
-    String TASK_SAFE = "Open a safe";
+    String TASK_FLAG = "Let the Flag be raised";
+    String TASK_SAFE = "Pick the lock";
 
     String TASK_FAILED = "Failed";
 

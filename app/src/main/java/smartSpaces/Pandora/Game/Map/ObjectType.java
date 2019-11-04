@@ -8,7 +8,7 @@ import smartSpaces.Pandora.Picklock.R;
 
 public enum ObjectType {
 
-    ROPE(1, MotionActivityType.RAISE_FLAG, false, R.drawable.flag),
+    FLAG(1, MotionActivityType.RAISE_FLAG, false, R.drawable.flag),
     LOCK(2, MotionActivityType.PICK_LOCK, false, R.drawable.safe),
     BOMB(3, true, R.drawable.bomb),
     TULIP(4, MotionActivityType.PIROUETTE, false, R.drawable.tulip),
