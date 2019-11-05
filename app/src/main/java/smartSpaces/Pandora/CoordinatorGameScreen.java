@@ -714,6 +714,11 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
             float top = (float) (block.getY() * stepsize);
             float bottom = top + stepsize;
 
+            if (objectImages.get(block) != null) {
+                Log.d(TAG, "drawMap: removing image... " + objectImages.get(block));
+                objectImages.get(block).setVisibility(View.GONE);
+            }
+
             tempCanvas.drawRect(left, top, right, bottom, p);
         }
 
@@ -739,6 +744,7 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
         objectImages.put(location, imageView);
 
         RelativeLayout relativeLayout = findViewById(R.id.map_objects);
+        Log.d(TAG, "drawObjectOnMap: Drawing object...." + imageView + ", : resid: " + resId);
 
         RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(stepsize, stepsize);
         layoutParams.setMargins(left, top, 0, 0);
@@ -1155,7 +1161,9 @@ public class CoordinatorGameScreen extends AppCompatActivity implements SensorEv
             public void onFinish() {
                 Log.i("MAPTIMER", "TIMER DONE: " + location.getX() + " " + location.getY());
                 gameMap.setInvisible(location);
+                Log.d(TAG, "onFinish: location: " + location);
                 if (objectImages.get(location) != null) {
+                    Log.d(TAG, "onFinish: image: " + objectImages);
                     ImageView objectImage = objectImages.get(location);
                     objectImage.setVisibility(View.GONE);
                 }
